@@ -38,3 +38,7 @@ block_comment_start = /**
 block_comment = *
 block_comment_end = */
 
+[*.sql]
+indent_style = tab
+trim_trailing_whitespace = true
+
