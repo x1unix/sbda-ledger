@@ -12,7 +12,7 @@ API documentation is available as [OpenAPI/Swagger spec](api/swagger.json).
 * docker-compose
 * **GNU** Make
 * Go 1.12+
-* [golang-migrate](https://github.com/golang-migrate/migrate)
+* [tern](https://github.com/jackc/tern) (for manual sql migration)
 
 ## Usage
 
@@ -22,6 +22,10 @@ API documentation is available as [OpenAPI/Swagger spec](api/swagger.json).
   * Pre-create containers *before* start using `docker-compose up -d` (one time operation)
 * `make gen`
 * `make run`
+
+#### Migrations
+
+Default location for migrations is `db/migrations`. Use `make new-migration` to create a new migration.
 
 ### Production
 
