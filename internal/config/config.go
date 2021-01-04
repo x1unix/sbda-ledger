@@ -2,11 +2,11 @@ package config
 
 import (
 	"fmt"
-	"github.com/x1unix/sbda-ledger/internal/db"
 	"os"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/x1unix/sbda-ledger/internal/db"
 	"gopkg.in/yaml.v2"
 )
 
