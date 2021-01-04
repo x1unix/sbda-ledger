@@ -2,6 +2,7 @@ listen: :1
 db:
   address: fulladdr
   migrations_dir: dir
+  version_table: testver
 redis:
   address: redisaddr
   db: 1111

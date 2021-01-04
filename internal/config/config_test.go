@@ -1,11 +1,12 @@
 package config
 
 import (
-	"github.com/stretchr/testify/require"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestFromFile(t *testing.T) {
@@ -34,6 +35,7 @@ func TestFromFile(t *testing.T) {
 				DB: Database{
 					Address:             "fulladdr",
 					MigrationsDirectory: "dir",
+					VersionTable:        "testver",
 				},
 				Redis: Redis{
 					Address:  "redisaddr",
@@ -50,6 +52,7 @@ func TestFromFile(t *testing.T) {
 				DB: Database{
 					Address:             "postgres://localhost:5432/ledger",
 					MigrationsDirectory: "db/migrations",
+					VersionTable:        "public.schema_version",
 				},
 				Redis: Redis{
 					Address: "localhost:6379",
@@ -64,6 +67,7 @@ func TestFromFile(t *testing.T) {
 				DB: Database{
 					Address:             "fulladdr",
 					MigrationsDirectory: "testmigrations",
+					VersionTable:        "public.schema_version",
 				},
 				Redis: Redis{
 					DB:       1234,
@@ -110,6 +114,7 @@ func TestFromEnv(t *testing.T) {
 				DB: Database{
 					Address:             "postgres://localhost:5432/ledger",
 					MigrationsDirectory: "db/migrations",
+					VersionTable:        "public.schema_version",
 				},
 				Redis: Redis{
 					Address: "localhost:6379",
@@ -123,6 +128,8 @@ func TestFromEnv(t *testing.T) {
 				DB: Database{
 					Address:             "postgres://pguser:pgpass@localhost:5432/ledger",
 					MigrationsDirectory: "/tmp/migrations",
+					VersionTable:        "testvertable",
+					SchemaVersion:       1,
 				},
 				Redis: Redis{
 					DB:       14,
@@ -137,6 +144,8 @@ func TestFromEnv(t *testing.T) {
 				envPrefixed("REDIS_DB"):       "14",
 				envPrefixed("REDIS_ADDRESS"):  "localhost:16379",
 				envPrefixed("REDIS_PASSWORD"): "fisheye",
+				envPrefixed("VERSION_TABLE"):  "testvertable",
+				envPrefixed("SCHEMA_VERSION"): "1",
 			},
 		},
 	}

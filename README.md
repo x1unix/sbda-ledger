@@ -36,12 +36,14 @@ Use `-c` flag to provide path to a config file.
 
 #### Environment variables
 
-| Name                 | Type   | Defaults                           | Description                                    |
-|----------------------|--------|------------------------------------|------------------------------------------------|
-| `LGR_HTTP_ADDR`      | string | `:8800`                            | Interface to listen by HTTP server             |
-| `LGR_DB_ADDRESS`     | string | `postgres://localhost:5432/ledger` | Postgres DB address (URL or DSN)               |
-| `LGR_MIGRATIONS_DIR` | string | `db/migrations`                    | Path to directory containing migration scripts |
-| `LGR_REDIS_ADDRESS`  | string | `localhost:6379`                   | Redis server address                           |
-| `LGR_REDIS_PASSWORD` | string | -                                  | Redis password                                 |
-| `LGR_REDIS_DB`       | int    | -                                  | Redis database number                          |
-|                      |        |                                    |                                                |
+| Name                 | Type   | Defaults                           | Description                                      |
+|----------------------|--------|------------------------------------|--------------------------------------------------|
+| `LGR_HTTP_ADDR`      | string | `:8800`                            | Interface to listen by HTTP server               |
+| `LGR_DB_ADDRESS`     | string | `postgres://localhost:5432/ledger` | Postgres DB address (URL or DSN)                 |
+| `LGR_REDIS_ADDRESS`  | string | `localhost:6379`                   | Redis server address                             |
+| `LGR_REDIS_PASSWORD` | string | -                                  | Redis password                                   |
+| `LGR_REDIS_DB`       | int    | -                                  | Redis database number                            |
+| `LGR_MIGRATIONS_DIR` | string | `db/migrations`                    | Path to directory containing migration scripts   |
+| `LGR_VERSION_TABLE`  | string | `public.schema_version`            | Name of a table, which contains database version |
+| `LGR_SCHEMA_VERSION` | int    | -                                  | Force set schema version (dangerous)             |
+|                      |        |                                    |                                                  |

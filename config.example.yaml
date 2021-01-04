@@ -1,3 +1,7 @@
+#
+# Configuration example. Use 'config.dev.yaml' for local development.
+#
+
 # Interface to listen
 listen: :8080
 
@@ -20,7 +24,14 @@ db:
   address: postgres://user:pass@localhost:5432/ledger
 
   # Path to directory containing migration scripts
-  migrations_dir: db/migrations
+  #migrations_dir: db/migrations
+
+  # Name of a table, which used to store database version
+  #version_table: public.schema_version
+
+  # Force set schema version (optional).
+  # Can be used to rollback schema to previous version.
+  #schema_version: 2
 
 # Redis config
 redis:
@@ -28,7 +39,7 @@ redis:
   address: localhost:6379
 
   # Database (optional)
-  db: 1
+  #db: 1
 
   # Password (optional)
-  password: password
+  #password: password

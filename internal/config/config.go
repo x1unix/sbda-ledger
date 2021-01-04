@@ -2,8 +2,10 @@ package config
 
 import (
 	"fmt"
+	"github.com/x1unix/sbda-ledger/internal/db"
 	"os"
 
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/kelseyhightower/envconfig"
 	"gopkg.in/yaml.v2"
 )
@@ -11,6 +13,25 @@ import (
 type Database struct {
 	Address             string `envconfig:"LGR_DB_ADDRESS" default:"postgres://localhost:5432/ledger" yaml:"address"`
 	MigrationsDirectory string `envconfig:"LGR_MIGRATIONS_DIR" default:"db/migrations" yaml:"migrations_dir"`
+	VersionTable        string `envconfig:"LGR_VERSION_TABLE" default:"public.schema_version" yaml:"version_table"`
+	SchemaVersion       int32  `envconfig:"LGR_SCHEMA_VERSION" yaml:"schema_version"`
+}
+
+func (dbs Database) PoolConfig() (*pgxpool.Config, error) {
+	cfg, err := pgxpool.ParseConfig(dbs.Address)
+	if err != nil {
+		return nil, fmt.Errorf("invalid database DSN string: %w", err)
+	}
+
+	return cfg, nil
+}
+
+func (dbs Database) MigrationParams() db.MigrationParams {
+	return db.MigrationParams{
+		TargetVersion:       dbs.SchemaVersion,
+		MigrationsDirectory: dbs.MigrationsDirectory,
+		VersionTable:        dbs.VersionTable,
+	}
 }
 
 type Redis struct {
