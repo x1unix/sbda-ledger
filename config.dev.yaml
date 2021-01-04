@@ -1,0 +1,6 @@
+listen: :8080
+db:
+  address: postgres://ledger:facepunch@localhost:5432/ledger
+  migrations_dir: db/migrations
+redis:
+  address: localhost:6379

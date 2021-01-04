@@ -1,0 +1,34 @@
+# Interface to listen
+listen: :8080
+
+# Database
+db:
+  # PostgreSQL connection params.
+  # Can be passed in URL or DSN format.
+  #
+  # Example DSN:
+  #   user=jack password=secret host=pg.example.com port=5432 dbname=mydb sslmode=verify-ca pool_max_conns=10
+  # Example URL:
+  #   postgres://jack:secret@pg.example.com:5432/mydb?sslmode=verify-ca&pool_max_conns=10
+  #
+  # Additional pool-related options:
+  #   pool_max_conns: integer greater than 0
+  #   pool_min_conns: integer 0 or greater
+  #   pool_max_conn_lifetime: duration string
+  #   pool_max_conn_idle_time: duration string
+  #   pool_health_check_period: duration string
+  address: postgres://user:pass@localhost:5432/ledger
+
+  # Path to directory containing migration scripts
+  migrations_dir: db/migrations
+
+# Redis config
+redis:
+  # Address
+  address: localhost:6379
+
+  # Database (optional)
+  db: 1
+
+  # Password (optional)
+  password: password

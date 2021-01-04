@@ -30,8 +30,18 @@ Output binary will be located at `target` directory.
 
 #### Configuration
 
-Configuration file is required in order to start the service.
+The service can be configured using environment variables, or a [config file](config.example.yaml).
 
-Default configuration file is available as `config.template.yml`.
+Use `-c` flag to provide path to a config file.
 
-Use `sbda-ledger -c [config-file]` to start service.
+#### Environment variables
+
+| Name                 | Type   | Defaults                           | Description                                    |   |
+|----------------------|--------|------------------------------------|------------------------------------------------|---|
+| `LGR_HTTP_ADDR`      | string | `:8800`                            | Interface to listen by HTTP server             |   |
+| `LGR_DB_ADDRESS`     | string | `postgres://localhost:5432/ledger` | Postgres DB address (URL or DSN)               |   |
+| `LGR_MIGRATIONS_DIR` | string | `db/migrations`                    | Path to directory containing migration scripts |   |
+| `LGR_REDIS_ADDRESS`  | string | `localhost:6379`                   | Redis server address                           |   |
+| `LGR_REDIS_PASSWORD` | string | -                                  | Redis password                                 |   |
+| `LGR_REDIS_DB`       | int    | -                                  | Redis database number                          |   |
+|                      |        |                                    |                                                |   |

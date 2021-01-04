@@ -3,8 +3,9 @@ services:
   db:
     image: postgres
     environment:
-      POSTGRES_USER: admin
+      POSTGRES_USER: ledger
       POSTGRES_PASSWORD: facepunch
+      POSTGRES_DB: ledger
       PGDATA: /var/lib/postgresql/data
     ports:
       - 5432:5432

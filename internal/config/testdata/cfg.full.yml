@@ -1,0 +1,8 @@
+listen: :1
+db:
+  address: fulladdr
+  migrations_dir: dir
+redis:
+  address: redisaddr
+  db: 1111
+  password: pass
