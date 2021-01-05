@@ -7,8 +7,27 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/x1unix/sbda-ledger/internal/db"
+	"github.com/x1unix/sbda-ledger/internal/web"
 	"gopkg.in/yaml.v2"
 )
+
+type ServerConfig struct {
+	ListenAddress              string   `envconfig:"LGR_LISTEN_ADDR" default:":8080" yaml:"listen"`
+	ReadTimeout                Duration `envconfig:"LGR_READ_TIMEOUT" yaml:"read_timeout"`
+	WriteTimeout               Duration `envconfig:"LGR_WRITE_TIMEOUT" yaml:"write_timeout"`
+	TokenBucketTTL             Duration `envconfig:"LGR_TOKEN_BUCKET_TTL" yaml:"token_bucket_ttl"`
+	UserRequestsPerSecondLimit float64  `envconfig:"LGR_USER_RPS_LIMIT" yaml:"user_rps_limit"`
+}
+
+func (cfg ServerConfig) ListenParams() web.ListenParams {
+	return web.ListenParams{
+		Address:            cfg.ListenAddress,
+		ReadTimeout:        cfg.ReadTimeout.Duration,
+		WriteTimeout:       cfg.WriteTimeout.Duration,
+		LimitExpirationTTL: cfg.TokenBucketTTL.Duration,
+		ClientRPSQuota:     cfg.UserRequestsPerSecondLimit,
+	}
+}
 
 type Database struct {
 	Address             string `envconfig:"LGR_DB_ADDRESS" default:"postgres://localhost:5432/ledger" yaml:"address"`
@@ -41,9 +60,9 @@ type Redis struct {
 }
 
 type Config struct {
-	Listen string   `envconfig:"LGR_HTTP_ADDR" default:":8080" yaml:"listen"`
-	DB     Database `yaml:"db"`
-	Redis  Redis    `yaml:"redis"`
+	Server ServerConfig `yaml:"server"`
+	DB     Database     `yaml:"db"`
+	Redis  Redis        `yaml:"redis"`
 }
 
 func FromFile(cfgPath string) (*Config, error) {

@@ -31,7 +31,9 @@ func TestFromFile(t *testing.T) {
 			label:   "load full config",
 			srcFile: "cfg.full.yml",
 			expect: &Config{
-				Listen: ":1",
+				Server: ServerConfig{
+					ListenAddress: ":1",
+				},
 				DB: Database{
 					Address:             "fulladdr",
 					MigrationsDirectory: "dir",
@@ -48,7 +50,9 @@ func TestFromFile(t *testing.T) {
 			label:   "fill empty with defaults",
 			srcFile: "cfg.empty.yml",
 			expect: &Config{
-				Listen: ":88",
+				Server: ServerConfig{
+					ListenAddress: ":88",
+				},
 				DB: Database{
 					Address:             "postgres://localhost:5432/ledger",
 					MigrationsDirectory: "db/migrations",
@@ -63,7 +67,9 @@ func TestFromFile(t *testing.T) {
 			label:   "fill empty values with env vars and defaults",
 			srcFile: "cfg.min.yml",
 			expect: &Config{
-				Listen: ":8888",
+				Server: ServerConfig{
+					ListenAddress: ":8888",
+				},
 				DB: Database{
 					Address:             "fulladdr",
 					MigrationsDirectory: "testmigrations",
@@ -110,7 +116,9 @@ func TestFromEnv(t *testing.T) {
 		{
 			label: "valid default config",
 			want: Config{
-				Listen: ":8080",
+				Server: ServerConfig{
+					ListenAddress: ":8080",
+				},
 				DB: Database{
 					Address:             "postgres://localhost:5432/ledger",
 					MigrationsDirectory: "db/migrations",
@@ -124,7 +132,9 @@ func TestFromEnv(t *testing.T) {
 		{
 			label: "valid config from environment",
 			want: Config{
-				Listen: ":10541",
+				Server: ServerConfig{
+					ListenAddress: ":88",
+				},
 				DB: Database{
 					Address:             "postgres://pguser:pgpass@localhost:5432/ledger",
 					MigrationsDirectory: "/tmp/migrations",

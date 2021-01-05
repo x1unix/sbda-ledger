@@ -1,1 +1,2 @@
-listen: :88
+server:
+  listen: :88

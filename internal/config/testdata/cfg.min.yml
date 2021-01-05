@@ -1,3 +1,4 @@
-listen: :8888
+server:
+  listen: :8888
 db:
   address: fulladdr

@@ -1,6 +1,12 @@
-listen: :8080
+# See: 'config.example.yml'
+
+server:
+  listen: :8080
+  user_rps_limit: 120
+
 db:
   address: postgres://ledger:facepunch@localhost:5432/ledger
   migrations_dir: db/migrations
+
 redis:
   address: localhost:6379

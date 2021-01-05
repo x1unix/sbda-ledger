@@ -2,8 +2,26 @@
 # Configuration example. Use 'config.dev.yaml' for local development.
 #
 
-# Interface to listen
-listen: :8080
+# API Server configuration
+server:
+  # Network interface to listen
+  listen: :8080
+
+  # Request read timeout
+  #read_timeout: 30s
+
+  # Request write timeout
+  #write_timeout: 30s
+
+  # Rate limiter settings
+  #
+  # Max requests per second for one IP address.
+  # Better to configure this on proxy-pass side.
+  #user_rps_limit: 120
+
+  # Token bucket expiration time for rate-limiter
+  #token_bucket_ttl: 720h
+
 
 # Database
 db:
