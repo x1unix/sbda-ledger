@@ -20,7 +20,10 @@ func NewService(logger *zap.Logger, cfg *config.Config) *Service {
 	hWrapper := web.NewWrapper(logger.Named("http"))
 	h := handler.AuthHandler{}
 	srv := web.NewServer(cfg.Server.ListenParams())
-	srv.Router.HandleFunc("/auth", hWrapper.WrapResourceHandler(h.Auth))
+
+	srv.Router.Methods(http.MethodPost).
+		Path("/auth/login").
+		HandlerFunc(hWrapper.WrapResourceHandler(h.Auth))
 
 	return &Service{
 		server: srv,
