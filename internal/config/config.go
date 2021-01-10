@@ -60,9 +60,10 @@ type Redis struct {
 }
 
 type Config struct {
-	Server ServerConfig `yaml:"server"`
-	DB     Database     `yaml:"db"`
-	Redis  Redis        `yaml:"redis"`
+	Production bool         `envconfig:"LGR_PRODUCTION" default:"false" yaml:"production"`
+	Server     ServerConfig `yaml:"server"`
+	DB         Database     `yaml:"db"`
+	Redis      Redis        `yaml:"redis"`
 }
 
 func FromFile(cfgPath string) (*Config, error) {

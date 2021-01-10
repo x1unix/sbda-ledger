@@ -6,6 +6,7 @@ import (
 
 	"github.com/didip/tollbooth/v6"
 	"github.com/didip/tollbooth/v6/limiter"
+	"github.com/gorilla/mux"
 )
 
 type ListenParams struct {
@@ -33,18 +34,31 @@ func (p ListenParams) limiterOpts() *limiter.ExpirableOptions {
 	return nil
 }
 
-// NewHTTPServer constructs new HTTP server with specified params
-func NewHTTPServer(p ListenParams, handler http.Handler) *http.Server {
-	// Add rate-limiter middleware only if client request quota is defined.
-	if p.ClientRPSQuota > 0 {
-		rlimit := tollbooth.NewLimiter(p.ClientRPSQuota, p.limiterOpts())
-		handler = tollbooth.LimitHandler(rlimit, handler)
-	}
+type Server struct {
+	*http.Server
+	Router *mux.Router
+}
 
-	return &http.Server{
-		Handler:      handler,
+// NewServer constructs new HTTP server with specified params
+func NewServer(p ListenParams) *Server {
+	router := mux.NewRouter()
+
+	router.Path("aa").Subrouter().Use()
+	httpSrv := &http.Server{
+		Handler:      router,
 		Addr:         p.Address,
 		WriteTimeout: p.WriteTimeout,
 		ReadTimeout:  p.ReadTimeout,
+	}
+
+	// Add rate-limiter middleware only if client request quota is defined.
+	if p.ClientRPSQuota > 0 {
+		rlimit := tollbooth.NewLimiter(p.ClientRPSQuota, p.limiterOpts())
+		httpSrv.Handler = tollbooth.LimitHandler(rlimit, router)
+	}
+
+	return &Server{
+		Server: httpSrv,
+		Router: router,
 	}
 }
