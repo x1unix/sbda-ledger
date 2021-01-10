@@ -1,60 +1,42 @@
 package db
 
 import (
-	"context"
 	"fmt"
 
-	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/jackc/tern/migrate"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/jmoiron/sqlx"
 )
 
-type MigrationParams struct {
-	// TargetVersion is target database version (optional).
-	// Leave empty to migrate to the latest version.
-	TargetVersion int32
-
-	// MigrationsDirectory is migrations source directory.
-	MigrationsDirectory string
-
-	// VersionTable is name of table which contains schema version.
-	VersionTable string
+type migrationParams struct {
+	dbName        string
+	versionTable  string
+	migrationsDir string
+	targetVersion uint
 }
 
-// InstantiateConnection instantiates DB connection pool and prepares database
-// by performing migrations from specified migrations directory.
-func InstantiateConnection(ctx context.Context, cfg *pgxpool.Config, params MigrationParams) (*pgxpool.Pool, error) {
-	pool, err := pgxpool.ConnectConfig(ctx, cfg)
+func runMigration(conn *sqlx.DB, p migrationParams) error {
+	d, err := postgres.WithInstance(conn.DB, &postgres.Config{
+		MigrationsTable: p.versionTable,
+		DatabaseName:    p.dbName,
+	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to a database: %w", err)
+		return fmt.Errorf("failed to initialize migrator: %w", err)
 	}
 
-	if err = RunMigration(ctx, pool, params); err != nil {
-		pool.Close()
-		return nil, fmt.Errorf("migration failed: %w", err)
-	}
-
-	return pool, nil
-}
-
-// RunMigration performs schema migration using pool connection and provided params.
-func RunMigration(ctx context.Context, pool *pgxpool.Pool, params MigrationParams) error {
-	conn, err := pool.Acquire(ctx)
+	m, err := migrate.NewWithDatabaseInstance("file://"+p.migrationsDir, p.dbName, d)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to initialize migrator: %w", err)
 	}
 
-	migrator, err := migrate.NewMigrator(ctx, conn.Conn(), params.VersionTable)
+	if p.targetVersion == 0 {
+		err = m.Up()
+	} else {
+		err = m.Migrate(p.targetVersion)
+	}
+
 	if err != nil {
-		return fmt.Errorf("failed to init migrator: %w", err)
+		return fmt.Errorf("failed to migrate database: %w", err)
 	}
-
-	if err = migrator.LoadMigrations(params.MigrationsDirectory); err != nil {
-		return fmt.Errorf("failed to load migrations from %q: %w", params.MigrationsDirectory, err)
-	}
-
-	if params.TargetVersion > 0 {
-		return migrator.MigrateTo(ctx, params.TargetVersion)
-	}
-
-	return migrator.Migrate(ctx)
+	return nil
 }

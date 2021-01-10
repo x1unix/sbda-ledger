@@ -12,7 +12,7 @@ API documentation is available as [OpenAPI/Swagger spec](api/swagger.json).
 * docker-compose
 * **GNU** Make
 * Go 1.12+
-* [tern](https://github.com/jackc/tern) (for manual sql migration)
+* [golang-migrate](https://github.com/golang-migrate/migrate) (for manual sql migration)
 
 ## Usage
 
