@@ -26,6 +26,7 @@ func main() {
 		fatal("failed to initialize logger:", err)
 		return
 	}
+	defer logger.Sync()
 
 	h := web.Handler{}
 	srv := web.NewServer(cfg.Server.ListenParams())
