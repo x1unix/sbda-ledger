@@ -1,4 +1,5 @@
-package ledger
+// package app contains ledger service bootstrap logic to start the service.
+package app
 
 import (
 	"context"

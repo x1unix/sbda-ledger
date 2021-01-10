@@ -1,4 +1,4 @@
-package ledger
+package app
 
 import (
 	"context"
@@ -16,7 +16,7 @@ type Service struct {
 	logger *zap.Logger
 }
 
-func NewService(logger *zap.Logger, cfg *config.Config) *Service {
+func NewService(logger *zap.Logger, conns *Connectors, cfg *config.Config) *Service {
 	hWrapper := web.NewWrapper(logger.Named("http"))
 	h := handler.AuthHandler{}
 	srv := web.NewServer(cfg.Server.ListenParams())

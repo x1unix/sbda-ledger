@@ -4,12 +4,17 @@ import (
 	"context"
 	"fmt"
 
+	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/x1unix/sbda-ledger/internal/config"
+	"go.uber.org/zap"
 )
 
-// Connect creates a database connection with appropriate pool configuration.
-func Connect(ctx context.Context, cfg *config.Database) (*sqlx.DB, error) {
+// Connect creates a database connection with appropriate pool configuration
+// and runs migration to prepare database.
+//
+// Migration will be omitted if appropriate config parameter set.
+func Connect(ctx context.Context, cfg config.Database) (*sqlx.DB, error) {
 	poolCfg, err := cfg.PoolConfig()
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse DB connection string: %w", err)
@@ -28,6 +33,11 @@ func Connect(ctx context.Context, cfg *config.Database) (*sqlx.DB, error) {
 
 	if err = conn.PingContext(ctx); err != nil {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
+	}
+
+	if cfg.SkipMigration {
+		zap.L().Info("database migration skipped")
+		return conn, nil
 	}
 
 	mp := migrationParams{

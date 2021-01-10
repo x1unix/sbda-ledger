@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/x1unix/sbda-ledger/internal/web"
@@ -33,6 +34,7 @@ type Database struct {
 	MigrationsDirectory string `envconfig:"LGR_MIGRATIONS_DIR" default:"db/migrations" yaml:"migrations_dir"`
 	VersionTable        string `envconfig:"LGR_VERSION_TABLE" default:"schema_migrations" yaml:"version_table"`
 	SchemaVersion       uint   `envconfig:"LGR_SCHEMA_VERSION" yaml:"schema_version"`
+	SkipMigration       bool   `envconfig:"LGR_NO_MIGRATION" yaml:"skip_migration"`
 }
 
 func (dbs Database) PoolConfig() (*pgxpool.Config, error) {
@@ -47,7 +49,19 @@ func (dbs Database) PoolConfig() (*pgxpool.Config, error) {
 type Redis struct {
 	DB       int    `envconfig:"LGR_REDIS_DB" yaml:"db"`
 	Address  string `envconfig:"LGR_REDIS_ADDRESS" yaml:"address" default:"localhost:6379"`
+	Username string `envconfig:"LGR_REDIS_USER" yaml:"username"`
 	Password string `envconfig:"LGR_REDIS_PASSWORD" yaml:"password"`
+}
+
+// RedisOptions returns redis connection options
+func (r Redis) RedisOptions() *redis.Options {
+	return &redis.Options{
+		Network:  "tcp",
+		Addr:     r.Address,
+		DB:       r.DB,
+		Username: r.Username,
+		Password: r.Password,
+	}
 }
 
 type Config struct {

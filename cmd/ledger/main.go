@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 
-	"github.com/x1unix/sbda-ledger/internal/ledger"
+	"github.com/x1unix/sbda-ledger/internal/app"
 	"go.uber.org/zap"
 )
 
@@ -12,20 +12,27 @@ func main() {
 	flag.StringVar(&cfgPath, "config", "", "Path to config file (optional)")
 	flag.Parse()
 
-	cfg, err := ledger.ProvideConfig(cfgPath)
+	cfg, err := app.ProvideConfig(cfgPath)
 	if err != nil {
-		ledger.Fatal("failed to read config:", err)
+		app.Fatal("failed to read config:", err)
 		return
 	}
 
-	logger, err := ledger.ProvideLogger(cfg)
+	logger, err := app.ProvideLogger(cfg)
 	if err != nil {
-		ledger.Fatal("failed to initialize logger:", err)
+		app.Fatal("failed to initialize logger:", err)
 		return
 	}
 	zap.ReplaceGlobals(logger)
 	defer logger.Sync()
 
-	app := ledger.NewService(logger, cfg)
-	app.Start(ledger.ApplicationContext())
+	ctx := app.ApplicationContext()
+	conns, err := app.InstantiateConnectors(ctx, cfg)
+	if err != nil {
+		logger.Sugar().Fatal(err)
+	}
+
+	defer conns.Close()
+	svc := app.NewService(logger, conns, cfg)
+	svc.Start(app.ApplicationContext())
 }

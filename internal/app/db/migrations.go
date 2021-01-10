@@ -35,6 +35,10 @@ func runMigration(conn *sqlx.DB, p migrationParams) error {
 		err = m.Migrate(p.targetVersion)
 	}
 
+	if err == migrate.ErrNoChange {
+		return nil
+	}
+
 	if err != nil {
 		return fmt.Errorf("failed to migrate database: %w", err)
 	}
