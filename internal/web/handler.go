@@ -68,7 +68,7 @@ func (w Wrapper) WrapHandler(handler HandlerFunc, middleware ...HandlerFunc) htt
 // See: WrapHandler
 func (w Wrapper) WrapResourceHandler(h ResourceHandlerFunc, mw ...HandlerFunc) http.HandlerFunc {
 	return w.WrapHandler(func(rw http.ResponseWriter, req *http.Request) error {
-		rw.Header().Add("Content-Type", "application/json")
+		rw.Header().Set("Content-Type", "application/json")
 		obj, err := h(rw, req)
 		if err != nil {
 			return err
@@ -94,7 +94,7 @@ func (w Wrapper) serveResponseError(rw http.ResponseWriter, err error) {
 	}
 
 	apiErr := ToAPIError(err)
-	rw.Header().Add("Content-Type", "application/json")
+	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(apiErr.Status)
 	if apiErr.Status >= http.StatusInternalServerError {
 		// Log critical response errors
