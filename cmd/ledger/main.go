@@ -9,7 +9,7 @@ import (
 
 func main() {
 	var cfgPath string
-	flag.StringVar(&cfgPath, "config", "", "Path to config file")
+	flag.StringVar(&cfgPath, "config", "", "Path to config file (optional)")
 	flag.Parse()
 
 	cfg, err := ledger.ProvideConfig(cfgPath)
