@@ -8,6 +8,12 @@ import (
 	"go.uber.org/zap"
 )
 
+// ErrorResponse is server error response
+type ErrorResponse struct {
+	// Error contains server error
+	Error *APIError `json:"error"`
+}
+
 // HandlerFunc is http.HandlerFunc extension which can return error.
 type HandlerFunc = func(rw http.ResponseWriter, req *http.Request) error
 
@@ -101,7 +107,8 @@ func (w Wrapper) serveResponseError(rw http.ResponseWriter, err error) {
 		w.log.Error(err.Error(), zap.Int("status", apiErr.Status))
 	}
 
-	if err := json.NewEncoder(rw).Encode(apiErr); err != nil {
+	resp := ErrorResponse{Error: apiErr}
+	if err := json.NewEncoder(rw).Encode(resp); err != nil {
 		w.log.Error("failed to encode error response", zap.Error(err))
 	}
 }

@@ -25,9 +25,6 @@ func main() {
 	}
 	zap.ReplaceGlobals(logger)
 	defer logger.Sync()
-	defer func() {
-		logger.Info("Fuck!")
-	}()
 
 	app := ledger.NewService(logger, cfg)
 	app.Start(ledger.ApplicationContext())
