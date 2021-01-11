@@ -1,6 +1,8 @@
 -- Support to auto-generate UUIDs (aka GUIDs)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- Here be dragons 🔥🐲 --
+
 -- Users table
 --
 -- Email limit is 254 chars according to RFC 5321.
@@ -69,12 +71,15 @@ CREATE TABLE "loans" (
 --
 -- Although we have a frequent search by "lender_id" or "debtor_id",
 -- but assuming that table insert/update is a frequent operation - keeping
--- 2 indexes for huge table will bring more disadvantages than advantages.
--- (update time and storage space will dramatically increase)
+-- 2 indexes for huge table will bring more disadvantages than advantages
+-- (update time and storage space will dramatically increase).
 --
 -- I could try to use composed cluster index, but:
 --  1. Table reordering during update takes time
 --  2. That probably won't speed search by individual field (`lender_id` or `debtor_id`)
+--
+-- Another trick is to write trigger or stored procedure to store
+-- updated balance, but it will be to simple, isn't it?
 --
 -- Assuming that I do a long search query only once (on balance cache population),
 -- insert time looks more important so I decided to omit index creation.
