@@ -7,29 +7,32 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 --
 -- Email limit is 254 chars according to RFC 5321, don't ask me who need such long mail.
 -- Password is encrypted using bcrypt, which is always has 60 chars.
-CREATE TABLE "users" (
-    "id"       uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+CREATE TABLE "users"
+(
+    "id"       uuid PRIMARY KEY    NOT NULL DEFAULT uuid_generate_v4(),
     "email"    VARCHAR(254) UNIQUE NOT NULL,
-    "name"     VARCHAR(64) NOT NULL,
-    "password" CHAR(60) NOT NULL
+    "name"     VARCHAR(64)         NOT NULL,
+    "password" CHAR(60)            NOT NULL
 );
 
 -- Groups table
 --
 -- Each group is owned by one user
-CREATE TABLE "groups" (
-    "id"        uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    "name"      VARCHAR(64) NOT NULL,
-    "owner_id"  uuid NOT NULL,
-    FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
+CREATE TABLE "groups"
+(
+    "id"       uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    "name"     VARCHAR(64)      NOT NULL,
+    "owner_id" uuid             NOT NULL,
+    FOREIGN KEY (owner_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
 -- Group members table
-CREATE TABLE "group_membership" (
+CREATE TABLE "group_membership"
+(
     "group_id"  uuid NOT NULL,
     "member_id" uuid NOT NULL,
-    FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE,
-    FOREIGN KEY (member_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (group_id) REFERENCES groups (id) ON DELETE CASCADE,
+    FOREIGN KEY (member_id) REFERENCES users (id) ON DELETE CASCADE,
 
     -- Group member add/remove will utilize member_id/group_id search
     -- so row id is mostly unnecessary.
@@ -55,17 +58,18 @@ CREATE TABLE "group_membership" (
 --
 -- So Alice payed 4$, Bob owes her 2$:
 --  (lender_id = alice, debtor_id = bob, amount=200)
-CREATE TABLE "loans" (
+CREATE TABLE "loans"
+(
     "id"         uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    "lender_id"  uuid NOT NULL,
-    "debtor_id"  uuid NOT NULL,
-    "amount"     integer NOT NULL CHECK (amount >= 0),
-    "created_at" timestamptz NOT NULL DEFAULT NOW(),
+    "lender_id"  uuid             NOT NULL,
+    "debtor_id"  uuid             NOT NULL,
+    "amount"     integer          NOT NULL CHECK (amount >= 0),
+    "created_at" timestamptz      NOT NULL DEFAULT NOW(),
 
     -- I added "ON DELETE CASCADE" constraint just for DB consistency.
     -- API never removes created users from `users` table.
-    FOREIGN KEY (lender_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (debtor_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (lender_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (debtor_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
 -- I intentionally didn't create any indexes for "loans".

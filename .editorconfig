@@ -10,14 +10,14 @@ trim_trailing_whitespace = true
 
 [{Makefile,go.mod,go.sum,*.go,.gitmodules}]
 indent_style = tab
-indent_size = 8
+tab_width = 4
 
 [*.md]
-indent_size = 4
+tab_width = 4
 trim_trailing_whitespace = false
 
 [Dockerfile]
-indent_size = 4
+tab_width = 4
 
 [*.yml]
 indent_style = space
@@ -38,10 +38,10 @@ block_comment_end = */
 [*.sql]
 indent_style = tab
 trim_trailing_whitespace = true
-indent_size = 4
+tab_width = 4
 
 [*.go]
 indent_style = tab
-indent_size = 4
+tab_width = 4
 
 
