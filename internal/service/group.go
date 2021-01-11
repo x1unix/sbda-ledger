@@ -92,6 +92,12 @@ func (r GroupService) AddMembers(ctx context.Context, actorId user.ID, gid user.
 		return err
 	}
 
+	for _, uid := range uids {
+		if uid == actorId {
+			return web.NewErrBadRequest("group author is already in group")
+		}
+	}
+
 	return r.groups.AddGroupUsers(ctx, gid, uids)
 }
 
@@ -104,6 +110,10 @@ func (r GroupService) GetMembers(ctx context.Context, gid user.GroupID) (user.Us
 func (r GroupService) RemoveMember(ctx context.Context, actorId user.ID, gid user.GroupID, uid user.ID) error {
 	if err := r.checkGroupActor(ctx, actorId, gid); err != nil {
 		return err
+	}
+
+	if actorId == uid {
+		return web.NewErrBadRequest("group creator cannot be removed from the group")
 	}
 
 	return r.groups.DeleteGroupUser(ctx, gid, uid)
