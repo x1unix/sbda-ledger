@@ -302,6 +302,47 @@ paths:
           description: "Not authorised"
           schema:
             $ref: "#/definitions/ErrorResponse"
+  /groups/{groupId}/expenses:
+    post:
+      tags: [ "groups" ]
+      summary: "Log a new expense for a whole group"
+      description: "Log a new expense in cents to be shared across all group members"
+      operationId: "groups.expenses.add"
+      parameters:
+        - in: path
+          name: groupId
+          type: string
+          format: uuid
+          required: true
+          description: "Group ID"
+        - in: "body"
+          name: "body"
+          description: "Expense information"
+          required: true
+          schema:
+            type: "object"
+            required: [amount]
+            properties:
+              amount:
+                type: number
+                format: int64
+                description: "Amount in cents"
+                example: 1000
+      produces:
+        - "application/json"
+      security:
+        - auth_token: [ ]
+      responses:
+        "201":
+          description: "No content"
+        "403":
+          description: "Forbidden"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "401":
+          description: "Not authorised"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
   /users:
     get:
       tags: ["users"]
