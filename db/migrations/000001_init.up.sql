@@ -12,7 +12,7 @@ CREATE TABLE "users" (
     "password" CHAR(60) NOT NULL
 );
 
--- User email index, email lookup is frequently used by auth
+-- User email index, email lookup used very frequently (by auth middleware)
 CREATE UNIQUE INDEX user_emails_idx ON users(email);
 
 -- Groups table
@@ -26,12 +26,16 @@ CREATE TABLE "groups" (
 );
 
 -- Group members table
-CREATE TABLE "group_members" (
-    "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+CREATE TABLE "group_membership" (
     "group_id" uuid NOT NULL,
     "member_id" uuid NOT NULL,
     FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE,
-    FOREIGN KEY (member_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (member_id) REFERENCES users(id) ON DELETE CASCADE,
+
+    -- Group member add/remove will utilize member_id/group_id search
+    -- so row id is mostly unnecessary.
+    -- Also user can join to a group only once.
+    PRIMARY KEY (group_id, member_id)
 );
 
 -- Loans table
@@ -62,3 +66,4 @@ CREATE TABLE "loans" (
     FOREIGN KEY (lender_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (debtor_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
