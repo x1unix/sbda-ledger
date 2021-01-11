@@ -6,7 +6,7 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
-	"github.com/x1unix/sbda-ledger/internal/model"
+	"github.com/x1unix/sbda-ledger/internal/model/user"
 	"github.com/x1unix/sbda-ledger/internal/service"
 )
 
@@ -25,7 +25,7 @@ type UserRepository struct {
 	db *sqlx.DB
 }
 
-func (r UserRepository) AddUser(ctx context.Context, u model.User) error {
+func (r UserRepository) AddUser(ctx context.Context, u user.User) error {
 	_, err := psql.Insert(tableUsers).SetMap(map[string]interface{}{
 		colEmail:    u.Email,
 		colName:     u.Name,
@@ -34,14 +34,14 @@ func (r UserRepository) AddUser(ctx context.Context, u model.User) error {
 	return err
 }
 
-func (r UserRepository) UserByEmail(email string) (*model.User, error) {
+func (r UserRepository) UserByEmail(email string) (*user.User, error) {
 	q, args, err := psql.Select(userCols...).Where(squirrel.Eq{
 		colEmail: email,
 	}).Limit(1).ToSql()
 	if err != nil {
 		return nil, err
 	}
-	u := new(model.User)
+	u := new(user.User)
 	err = r.db.Get(u, q, args...)
 	return u, wrapRecordError(err)
 }

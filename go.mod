@@ -8,6 +8,7 @@ require (
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/go-redis/redis/v8 v8.4.8
 	github.com/golang-migrate/migrate/v4 v4.14.1
+	github.com/google/uuid v1.1.4
 	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.0.7 // indirect

@@ -1,0 +1,59 @@
+package user
+
+import (
+	"errors"
+	"fmt"
+
+	"github.com/jackc/pgtype"
+	"golang.org/x/crypto/bcrypt"
+)
+
+type ID = pgtype.UUID
+
+type Registration struct {
+	Props
+	Password string `json:"password" validate:"required,min=6"`
+}
+
+type Props struct {
+	Email string `json:"email" db:"email" validate:"required,email"`
+	Name  string `json:"name" db:"name" validate:"required,min=3,max=64,name"`
+}
+
+type User struct {
+	Props
+
+	// ID is unique user ID
+	ID pgtype.UUID `json:"id" db:"id"`
+
+	// Password contains encrypted password and salt in bcrypt format
+	Password string `json:"-" db:"password"`
+}
+
+// SetPassword encrypts and updates user password
+func (u *User) SetPassword(newPassword string) error {
+	// bcrypt already embeds random salt to hashed pass
+	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	u.Password = string(hash)
+	return nil
+}
+
+// ComparePassword compares password with hashed in user
+func (u User) ComparePassword(pwd string) (bool, error) {
+	if u.Password == "" {
+		return false, errors.New("origin password not available")
+	}
+
+	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(pwd))
+	if err == bcrypt.ErrMismatchedHashAndPassword {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}

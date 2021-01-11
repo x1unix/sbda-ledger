@@ -33,7 +33,7 @@ func InstantiateConnectors(ctx context.Context, cfg *config.Config) (*Connectors
 		return nil, err
 	}
 
-	redisConn := redis.NewClient(cfg.Redis.RedisOptions())
+	redisConn := redis.NewClient(cfg.Redis.RedisOptions()).WithContext(ctx)
 	if _, err = redisConn.Ping(ctx).Result(); err != nil {
 		_ = dbConn.Close()
 		return nil, fmt.Errorf("failed to connect to Redis server: %w", err)
