@@ -107,7 +107,12 @@ paths:
         description: "Group creation arguments"
         required: true
         schema:
-          $ref: "#/definitions/GroupInfo"
+          type: "object"
+          properties:
+            name:
+              type: string
+              description: "Group name"
+              example: "Friends"
       responses:
         "200":
           $ref: "#/definitions/Group"
@@ -150,9 +155,9 @@ paths:
         - auth_token: []
       responses:
         "200":
-          description: "Group information"
+          description: "Group full information"
           schema:
-            $ref: "#/definitions/Group"
+            $ref: "#/definitions/GroupInfo"
         "403":
           description: "Forbidden"
           schema:
@@ -177,10 +182,8 @@ paths:
       security:
         - auth_token: [ ]
       responses:
-        "200":
-          description: "List of user groups"
-          schema:
-            $ref: "#/definitions/Groups"
+        "201":
+          description: "Empty response"
         "403":
           description: "Forbidden"
           schema:
@@ -193,6 +196,7 @@ paths:
     get:
       tags: ["groups"]
       summary: "Get group members"
+      description: "Returns list of ids of group members"
       operationId: "groups.members.get"
       parameters:
         - in: path
@@ -211,7 +215,7 @@ paths:
           schema:
             type: "object"
             properties:
-              members:
+              users:
                 $ref: "#/definitions/Users"
         "403":
           description: "Forbidden"
@@ -334,20 +338,30 @@ definitions:
         type: integer
         description: "Balance in cents"
   GroupInfo:
-    description: "Group creation params"
+    description: "Group full information"
     type: "object"
-    required: ["name"]
+    readOnly: true
     properties:
+      id:
+        type: "string"
+        format: "uuid"
+      owner_id:
+        type: "string"
+        format: "uuid"
       name:
         type: "string"
         example: "Friends"
+      members:
+        type: "array"
+        items:
+          $ref: "#/definitions/User"
   Groups:
     description: "List of groups"
     type: "array"
     items:
       $ref: "#/definitions/Group"
   Group:
-    description: "Group information"
+    description: "Group summary"
     type: "object"
     readOnly: true
     properties:
