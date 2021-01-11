@@ -4,7 +4,7 @@ import "github.com/x1unix/sbda-ledger/internal/model/user"
 
 type Credentials struct {
 	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=6"`
+	Password string `json:"password" validate:"required"`
 	Remember bool   `json:"remember"`
 }
 

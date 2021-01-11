@@ -23,7 +23,7 @@ type UserStorage interface {
 	AddUser(ctx context.Context, u user.User) (*user.ID, error)
 
 	// UserByEmail finds user by email
-	UserByEmail(email string) (*user.User, error)
+	UserByEmail(ctx context.Context, email string) (*user.User, error)
 
 	// Exists checks if user with specified email exists
 	Exists(email string) (bool, error)
@@ -36,14 +36,14 @@ type UsersService struct {
 
 func NewUsersService(log *zap.Logger, store UserStorage) *UsersService {
 	return &UsersService{
-		log:   log.Named("users"),
+		log:   log.Named("service.users"),
 		store: store,
 	}
 }
 
 // UserByEmail finds user by email
 func (s UsersService) UserByEmail(ctx context.Context, email string) (*user.User, error) {
-	usr, err := s.UserByEmail(ctx, email)
+	usr, err := s.store.UserByEmail(ctx, email)
 	if err == ErrNotExists {
 		return nil, err
 	}

@@ -43,15 +43,16 @@ type SessionStore interface {
 // AuthService is authentication service
 type AuthService struct {
 	store SessionStore
-	users UsersService
+	users *UsersService
 	log   *zap.Logger
 }
 
 // NewAuthService is AuthService constructor
-func NewAuthService(log *zap.Logger, store SessionStore) *AuthService {
+func NewAuthService(log *zap.Logger, usersSvc *UsersService, store SessionStore) *AuthService {
 	return &AuthService{
 		log:   log.Named("service.auth"),
 		store: store,
+		users: usersSvc,
 	}
 }
 

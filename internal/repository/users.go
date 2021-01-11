@@ -25,6 +25,11 @@ type UserRepository struct {
 	db *sqlx.DB
 }
 
+// NewUserRepository is UserRepository constructor
+func NewUserRepository(db *sqlx.DB) *UserRepository {
+	return &UserRepository{db: db}
+}
+
 func (r UserRepository) AddUser(ctx context.Context, u user.User) (*user.ID, error) {
 	q, args, err := psql.Insert(tableUsers).SetMap(map[string]interface{}{
 		colEmail:    u.Email,
@@ -39,7 +44,7 @@ func (r UserRepository) AddUser(ctx context.Context, u user.User) (*user.ID, err
 	return newID, r.db.GetContext(ctx, newID, q, args...)
 }
 
-func (r UserRepository) UserByEmail(email string) (*user.User, error) {
+func (r UserRepository) UserByEmail(ctx context.Context, email string) (*user.User, error) {
 	q, args, err := psql.Select(userCols...).Where(squirrel.Eq{
 		colEmail: email,
 	}).Limit(1).ToSql()
@@ -47,7 +52,7 @@ func (r UserRepository) UserByEmail(email string) (*user.User, error) {
 		return nil, err
 	}
 	u := new(user.User)
-	err = r.db.Get(u, q, args...)
+	err = r.db.GetContext(ctx, u, q, args...)
 	return u, wrapRecordError(err)
 }
 

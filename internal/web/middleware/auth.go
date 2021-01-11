@@ -12,7 +12,7 @@ import (
 // NewAuthMiddleware returns a new middleware which checks if user is authenticated.
 //
 // If user is authenticated, user session will be populated into request context.
-func NewAuthMiddleware(authSvc service.AuthService) web.MiddlewareFunc {
+func NewAuthMiddleware(authSvc *service.AuthService) web.MiddlewareFunc {
 	return func(rw http.ResponseWriter, req *http.Request) (*http.Request, error) {
 		token, ok := httputil.BearerTokenFromRequest(req)
 		if !ok {

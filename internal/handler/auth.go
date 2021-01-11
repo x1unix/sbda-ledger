@@ -13,6 +13,14 @@ type AuthHandler struct {
 	authService *service.AuthService
 }
 
+// NewAuthHandler is AuthHandler constructor
+func NewAuthHandler(userSvc *service.UsersService, authSvc *service.AuthService) *AuthHandler {
+	return &AuthHandler{
+		userService: userSvc,
+		authService: authSvc,
+	}
+}
+
 func (h AuthHandler) Register(_ http.ResponseWriter, r *http.Request) (interface{}, error) {
 	var reg user.Registration
 	if err := UnmarshalAndValidate(r.Body, &reg); err != nil {
@@ -47,11 +55,25 @@ func (h AuthHandler) Login(_ http.ResponseWriter, r *http.Request) (interface{},
 	return h.authService.Authenticate(r.Context(), creds)
 }
 
-func (h AuthHandler) Logout(_ http.ResponseWriter, r *http.Request) error {
+func (h AuthHandler) GetSession(_ http.ResponseWriter, r *http.Request) (interface{}, error) {
+	sess := auth.SessionFromContext(r.Context())
+	if sess == nil {
+		return nil, service.ErrAuthRequired
+	}
+
+	return sess, nil
+}
+
+func (h AuthHandler) Logout(w http.ResponseWriter, r *http.Request) error {
 	sess := auth.SessionFromContext(r.Context())
 	if sess == nil {
 		return service.ErrAuthRequired
 	}
 
-	return h.authService.ForgetSession(r.Context(), sess.ID)
+	if err := h.authService.ForgetSession(r.Context(), sess.ID); err != nil {
+		return err
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	return nil
 }

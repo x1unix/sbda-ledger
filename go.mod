@@ -3,7 +3,7 @@ module github.com/x1unix/sbda-ledger
 go 1.15
 
 require (
-	github.com/Masterminds/squirrel v1.5.0 // indirect
+	github.com/Masterminds/squirrel v1.5.0
 	github.com/didip/tollbooth/v6 v6.1.0
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/go-redis/redis/v8 v8.4.8
