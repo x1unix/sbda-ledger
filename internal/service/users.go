@@ -17,8 +17,10 @@ var (
 
 // UserStorage provides user storage
 type UserStorage interface {
-	// AddUser adds a new user to a storage
-	AddUser(ctx context.Context, u user.User) error
+	// AddUser adds a new user to a storage.
+	//
+	// Returns a user ID of created user.
+	AddUser(ctx context.Context, u user.User) (*user.ID, error)
 
 	// UserByEmail finds user by email
 	UserByEmail(email string) (*user.User, error)
@@ -53,28 +55,31 @@ func (s UsersService) UserByEmail(ctx context.Context, email string) (*user.User
 }
 
 // AddUser registers a new user
-func (s UsersService) AddUser(ctx context.Context, usrReg user.Registration) (err error) {
-	if err = model.Validate(usrReg); err != nil {
-		return err
+func (s UsersService) AddUser(ctx context.Context, usrReg user.Registration) (*user.User, error) {
+	if err := model.Validate(usrReg); err != nil {
+		return nil, err
 	}
 
 	// TODO: should I do this in single isolated transaction?
 	exists, err := s.store.Exists(usrReg.Email)
 	if err != nil {
-		return fmt.Errorf("can't check if user exists: %w", err)
+		return nil, fmt.Errorf("can't check if user exists: %w", err)
 	}
 
 	if exists {
-		return ErrExists
+		return nil, ErrExists
 	}
 
 	usr := user.User{Props: usrReg.Props}
 	if err = usr.SetPassword(usrReg.Password); err != nil {
-		return err
+		return nil, err
 	}
 
-	if err = s.store.AddUser(ctx, usr); err != nil {
-		return fmt.Errorf("failed to create new user %q: %w", usrReg.Email, err)
+	uid, err := s.store.AddUser(ctx, usr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create new user %q: %w", usrReg.Email, err)
 	}
-	return nil
+
+	usr.ID = *uid
+	return &usr, nil
 }

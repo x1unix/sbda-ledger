@@ -80,6 +80,7 @@ func (s AuthService) Authenticate(ctx context.Context, creds auth.Credentials) (
 	}
 
 	return &auth.LoginResult{
+		Token:   sess.Token(),
 		User:    usr,
 		Session: sess,
 	}, nil

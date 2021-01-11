@@ -25,13 +25,18 @@ type UserRepository struct {
 	db *sqlx.DB
 }
 
-func (r UserRepository) AddUser(ctx context.Context, u user.User) error {
-	_, err := psql.Insert(tableUsers).SetMap(map[string]interface{}{
+func (r UserRepository) AddUser(ctx context.Context, u user.User) (*user.ID, error) {
+	q, args, err := psql.Insert(tableUsers).SetMap(map[string]interface{}{
 		colEmail:    u.Email,
 		colName:     u.Name,
 		colPassword: u.PasswordHash,
-	}).RunWith(r.db).ExecContext(ctx)
-	return err
+	}).Suffix("RETURNING " + colID).ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	newID := new(user.ID)
+	return newID, r.db.GetContext(ctx, newID, q, args...)
 }
 
 func (r UserRepository) UserByEmail(email string) (*user.User, error) {

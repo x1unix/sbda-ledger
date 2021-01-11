@@ -9,6 +9,7 @@ type Credentials struct {
 }
 
 type LoginResult struct {
+	Token   Token      `json:"token"`
 	User    *user.User `json:"user"`
 	Session *Session   `json:"session"`
 }

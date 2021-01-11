@@ -59,6 +59,20 @@ func ContextWithSession(ctx context.Context, sess *Session) context.Context {
 	return context.WithValue(ctx, ctxSessionKey, sess)
 }
 
+// SessionFromContext returns session from context
+func SessionFromContext(ctx context.Context) *Session {
+	v := ctx.Value(ctxSessionKey)
+	if v == nil {
+		return nil
+	}
+
+	ss, ok := v.(*Session)
+	if !ok {
+		return nil
+	}
+	return ss
+}
+
 // NewSession returns new session
 func NewSession(uid user.ID, ttl time.Duration) *Session {
 	return &Session{
