@@ -446,9 +446,9 @@ paths:
 
 securityDefinitions:
   auth_token:
-    description: "Auth token passed as bearer token"
+    description: "Authorization token"
     type: "apiKey"
-    name: "Authorization"
+    name: "X-Auth-Token"
     in: "header"
 
 definitions:

@@ -28,6 +28,10 @@ func ParseToken(t string) (uuid.UUID, error) {
 
 // SessionID returns session id from token
 func (t Token) SessionID() (uuid.UUID, error) {
+	if t == "" {
+		return uuid.Nil, ErrInvalidToken
+	}
+
 	rawid, err := base64.StdEncoding.DecodeString(string(t))
 	if err != nil {
 		return uuid.Nil, ErrInvalidToken
