@@ -20,7 +20,6 @@ API documentation is available as [OpenAPI/Swagger spec](api/swagger.json).
 
 * Start DB and Redis containers with `docker-compose start`
   * Pre-create containers *before* start using `docker-compose up -d` (one time operation)
-* `make gen`
 * `make run`
 
 #### Migrations
