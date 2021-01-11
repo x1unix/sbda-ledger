@@ -7,6 +7,7 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
+	"go.uber.org/zap"
 )
 
 type migrationParams struct {
@@ -37,9 +38,11 @@ func runMigration(conn *sqlx.DB, p migrationParams) error {
 	}
 
 	if err == migrate.ErrNoChange {
+		zap.L().Info("no database changes")
 		return nil
 	}
 
+	zap.L().Info("migration finished")
 	if err != nil {
 		return fmt.Errorf("failed to migrate database: %w", err)
 	}
