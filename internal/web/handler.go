@@ -21,6 +21,9 @@ type HandlerFunc = func(rw http.ResponseWriter, req *http.Request) error
 // result which will be encoded to JSON or response error.
 type ResourceHandlerFunc = func(rw http.ResponseWriter, req *http.Request) (interface{}, error)
 
+// MiddlewareFunc is request wrapper
+type MiddlewareFunc = func(rw http.ResponseWriter, req *http.Request) (*http.Request, error)
+
 // Wrapper is http handler wrapper and composer.
 type Wrapper struct {
 	log *zap.Logger
@@ -43,7 +46,7 @@ func NewWrapper(log *zap.Logger) *Wrapper {
 //	// handler with multiple middlewares
 //	web.WrapHandler(getUserData, RequireCORS, RequireAuth)
 //
-func (w Wrapper) WrapHandler(handler HandlerFunc, middleware ...HandlerFunc) http.HandlerFunc {
+func (w Wrapper) WrapHandler(handler HandlerFunc, wrappers ...MiddlewareFunc) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if r := recover(); r != nil {
@@ -51,18 +54,21 @@ func (w Wrapper) WrapHandler(handler HandlerFunc, middleware ...HandlerFunc) htt
 			}
 		}()
 
+		if len(wrappers) == 0 {
+			w.serveResponseError(rw, handler(rw, r))
+			return
+		}
+
 		var err error
-		if len(middleware) > 0 {
-			for _, mw := range middleware {
-				if err = mw(rw, r); err != nil {
-					w.serveResponseError(rw, err)
-					return
-				}
+		for _, mw := range wrappers {
+			r, err = mw(rw, r)
+			if err != nil {
+				w.serveResponseError(rw, err)
+				return
 			}
 		}
 
-		err = handler(rw, r)
-		w.serveResponseError(rw, err)
+		w.serveResponseError(rw, handler(rw, r))
 	}
 }
 
@@ -72,7 +78,7 @@ func (w Wrapper) WrapHandler(handler HandlerFunc, middleware ...HandlerFunc) htt
 // Accepts optional list of middleware functions to be called before handler.
 //
 // See: WrapHandler
-func (w Wrapper) WrapResourceHandler(h ResourceHandlerFunc, mw ...HandlerFunc) http.HandlerFunc {
+func (w Wrapper) WrapResourceHandler(h ResourceHandlerFunc, mw ...MiddlewareFunc) http.HandlerFunc {
 	return w.WrapHandler(func(rw http.ResponseWriter, req *http.Request) error {
 		rw.Header().Set("Content-Type", "application/json")
 		obj, err := h(rw, req)
