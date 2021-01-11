@@ -7,7 +7,7 @@ type Groups = []Group
 
 type Group struct {
 	ID      pgtype.UUID `json:"id" db:"id"`
-	Name    string      `json:"name" db:"id"`
+	Name    string      `json:"name" db:"name"`
 	OwnerID ID          `json:"owner_id" db:"owner_id"`
 }
 

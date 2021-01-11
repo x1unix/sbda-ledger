@@ -126,7 +126,7 @@ func (r GroupRepository) GroupsByUser(ctx context.Context, uid user.ID) (user.Gr
 	// squirrel doesn't support union selects still.
 	// "github.com/doug-martin/goqu/v9" supports it, but
 	// I don't want to bring a new lib just for 1 query.
-	const query = "(SELECT id, name, owner_id FROM " + tableGroups + " WHERE owner = $1)" +
+	const query = "(SELECT id, name, owner_id FROM " + tableGroups + " WHERE owner_id = $1)" +
 		" UNION " +
 		"(SELECT " +
 		"id, name, owner_id" +
@@ -138,7 +138,7 @@ func (r GroupRepository) GroupsByUser(ctx context.Context, uid user.ID) (user.Gr
 		")"
 
 	var out user.Groups
-	err := r.db.SelectContext(ctx, out, query, uid)
+	err := r.db.SelectContext(ctx, &out, query, uid)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}

@@ -50,9 +50,9 @@ func NewService(logger *zap.Logger, conn *Connectors, cfg *config.Config) *Servi
 	groupHandler := handler.NewGroupHandler(grpSvc)
 	groupRouter := srv.Router.PathPrefix("/groups").Subrouter()
 	groupRouter.Use(requireAuth)
-	groupRouter.Path("/").Methods(http.MethodGet).
+	groupRouter.Path("").Methods(http.MethodGet).
 		HandlerFunc(hWrapper.WrapResourceHandler(groupHandler.GetUserGroups))
-	groupRouter.Path("/").Methods(http.MethodPost).
+	groupRouter.Path("").Methods(http.MethodPost).
 		HandlerFunc(hWrapper.WrapResourceHandler(groupHandler.CreateGroup))
 	groupRouter.Path("/{groupId}").Methods(http.MethodGet).
 		HandlerFunc(hWrapper.WrapResourceHandler(groupHandler.GetUserGroups))
