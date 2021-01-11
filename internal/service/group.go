@@ -95,6 +95,11 @@ func (r GroupService) AddMembers(ctx context.Context, actorId user.ID, gid user.
 	return r.groups.AddGroupUsers(ctx, gid, uids)
 }
 
+// GetMembers returns list of group members
+func (r GroupService) GetMembers(ctx context.Context, gid user.GroupID) (user.Users, error) {
+	return r.groups.GetGroupMembers(ctx, gid)
+}
+
 // RemoveMember removes a member from a group
 func (r GroupService) RemoveMember(ctx context.Context, actorId user.ID, gid user.GroupID, uid user.ID) error {
 	if err := r.checkGroupActor(ctx, actorId, gid); err != nil {

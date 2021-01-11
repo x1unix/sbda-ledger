@@ -81,6 +81,27 @@ func (h GroupHandler) DeleteGroup(w http.ResponseWriter, r *http.Request) error 
 	return nil
 }
 
+func (h GroupHandler) GetMembers(r *http.Request) (interface{}, error) {
+	ctx := r.Context()
+	sess := auth.SessionFromContext(ctx)
+	if sess == nil {
+		return nil, service.ErrAuthRequired
+	}
+
+	vars := mux.Vars(r)
+	gid, err := model.DecodeUUID(vars["groupId"])
+	if err != nil {
+		return nil, err
+	}
+
+	members, err := h.groupService.GetMembers(ctx, *gid)
+	if err != nil {
+		return nil, err
+	}
+
+	return request.UsersList{Users: members}, nil
+}
+
 func (h GroupHandler) AddMembers(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	sess := auth.SessionFromContext(ctx)

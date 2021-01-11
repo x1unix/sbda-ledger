@@ -24,23 +24,46 @@ func NewService(logger *zap.Logger, conn *Connectors, cfg *config.Config) *Servi
 
 	userSvc := service.NewUsersService(logger, repository.NewUserRepository(conn.DB))
 	authSvc := service.NewAuthService(logger, userSvc, repository.NewSessionRepository(conn.Redis))
-
-	requireAuth := middleware.NewAuthMiddleware(authSvc)
-	authHandler := handler.NewAuthHandler(userSvc, authSvc)
+	grpSvc := service.NewGroupService(repository.NewGroupRepository(conn.DB))
 
 	hWrapper := web.NewWrapper(logger.Named("http"))
+	requireAuth := hWrapper.MiddlewareFunc(middleware.NewAuthMiddleware(authSvc))
+
+	// Auth
+	authHandler := handler.NewAuthHandler(userSvc, authSvc)
 	srv.Router.Methods(http.MethodPost).
 		Path("/auth").
 		HandlerFunc(hWrapper.WrapResourceHandler(authHandler.Login))
 	srv.Router.Methods(http.MethodPost).
 		Path("/auth/register").
 		HandlerFunc(hWrapper.WrapResourceHandler(authHandler.Register))
-	srv.Router.Methods(http.MethodGet).
-		Path("/auth/session").
-		HandlerFunc(hWrapper.WrapResourceHandler(authHandler.GetSession, requireAuth))
-	srv.Router.Methods(http.MethodDelete).
-		Path("/auth/session").
-		HandlerFunc(hWrapper.WrapHandler(authHandler.Logout, requireAuth))
+
+	// Session
+	sessionRouter := srv.Router.Path("/auth/session").Subrouter()
+	sessionRouter.Use(requireAuth)
+	sessionRouter.Methods(http.MethodGet).
+		HandlerFunc(hWrapper.WrapResourceHandler(authHandler.GetSession))
+	sessionRouter.Methods(http.MethodDelete).
+		HandlerFunc(hWrapper.WrapHandler(authHandler.Logout))
+
+	// Group management
+	groupHandler := handler.NewGroupHandler(grpSvc)
+	groupRouter := srv.Router.PathPrefix("/groups").Subrouter()
+	groupRouter.Use(requireAuth)
+	groupRouter.Path("/").Methods(http.MethodGet).
+		HandlerFunc(hWrapper.WrapResourceHandler(groupHandler.GetUserGroups))
+	groupRouter.Path("/").Methods(http.MethodPost).
+		HandlerFunc(hWrapper.WrapResourceHandler(groupHandler.CreateGroup))
+	groupRouter.Path("/{groupId}").Methods(http.MethodGet).
+		HandlerFunc(hWrapper.WrapResourceHandler(groupHandler.GetUserGroups))
+	groupRouter.Path("/{groupId}").Methods(http.MethodDelete).
+		HandlerFunc(hWrapper.WrapHandler(groupHandler.DeleteGroup))
+	groupRouter.Path("/{groupId}/members").Methods(http.MethodGet).
+		HandlerFunc(hWrapper.WrapResourceHandler(groupHandler.GetMembers))
+	groupRouter.Path("/{groupId}/members").Methods(http.MethodPost).
+		HandlerFunc(hWrapper.WrapHandler(groupHandler.AddMembers))
+	groupRouter.Path("/{groupId}/members/{userId}").Methods(http.MethodDelete).
+		HandlerFunc(hWrapper.WrapHandler(groupHandler.RemoveMember))
 
 	return &Service{
 		server: srv,

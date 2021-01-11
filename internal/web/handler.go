@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 )
 
@@ -98,6 +99,21 @@ func (w Wrapper) WrapResourceHandler(h ResourceHandlerFunc, mw ...MiddlewareFunc
 
 		return nil
 	}, mw...)
+}
+
+// MiddlewareFunc wraps web's middleware onto mux.MiddlewareFunc.
+func (w Wrapper) MiddlewareFunc(fn MiddlewareFunc) mux.MiddlewareFunc {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+			newReq, err := fn(rw, r)
+			if err != nil {
+				w.serveResponseError(rw, err)
+				return
+			}
+
+			next.ServeHTTP(rw, newReq)
+		})
+	}
 }
 
 func (w Wrapper) serveResponseError(rw http.ResponseWriter, err error) {
