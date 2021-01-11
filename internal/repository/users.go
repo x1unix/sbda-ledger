@@ -45,7 +45,7 @@ func (r UserRepository) AddUser(ctx context.Context, u user.User) (*user.ID, err
 }
 
 func (r UserRepository) UserByEmail(ctx context.Context, email string) (*user.User, error) {
-	q, args, err := psql.Select(userCols...).Where(squirrel.Eq{
+	q, args, err := psql.Select(userCols...).From(tableUsers).Where(squirrel.Eq{
 		colEmail: email,
 	}).Limit(1).ToSql()
 	if err != nil {
@@ -57,7 +57,7 @@ func (r UserRepository) UserByEmail(ctx context.Context, email string) (*user.Us
 }
 
 func (r UserRepository) Exists(email string) (bool, error) {
-	q, args, err := psql.Select("COUNT(*)").Where(squirrel.Eq{
+	q, args, err := psql.Select("COUNT(*)").From(tableUsers).Where(squirrel.Eq{
 		colEmail: email,
 	}).ToSql()
 	if err != nil {
