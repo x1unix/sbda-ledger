@@ -11,12 +11,17 @@ schemes:
 tags:
   - name: "auth"
     description: "Authentication"
+  - name: "users"
+    description: "Users"
+  - name: "groups"
+    description: "Groups"
 paths:
   /auth:
     post:
       tags:
         - "auth"
-      summary: "Authenticate and get request token"
+      summary: "Login"
+      description: "Authenticate and get request token"
       operationId: "login"
       consumes:
         - "application/json"
@@ -297,6 +302,83 @@ paths:
           description: "Not authorised"
           schema:
             $ref: "#/definitions/ErrorResponse"
+  /users:
+    get:
+      tags: ["users"]
+      summary: "Get users list"
+      operationId: "users.all"
+      produces:
+        - "application/json"
+      security:
+        - auth_token: [ ]
+      responses:
+        "200":
+          description: "Users list"
+          schema:
+            type: "object"
+            readOnly: true
+            properties:
+              users:
+                $ref: "#/definitions/Users"
+        "403":
+          description: "Forbidden"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "401":
+          description: "Not authorised"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /users/{userId}:
+    get:
+      tags: [ "users" ]
+      summary: "Get user by ID"
+      operationId: "users.by_id"
+      produces:
+        - "application/json"
+      security:
+        - auth_token: [ ]
+      parameters:
+        - in: path
+          name: userId
+          type: string
+          format: uuid
+          required: true
+          description: "User ID"
+      responses:
+        "200":
+          description: "User information"
+          schema:
+            $ref: "#/definitions/User"
+        "403":
+          description: "Forbidden"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "401":
+          description: "Not authorised"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /users/self:
+    get:
+      tags: [ "users" ]
+      summary: "Get information about current user"
+      operationId: "users.self"
+      produces:
+        - "application/json"
+      security:
+        - auth_token: [ ]
+      responses:
+        "200":
+          description: "User information"
+          schema:
+            $ref: "#/definitions/User"
+        "403":
+          description: "Forbidden"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "401":
+          description: "Not authorised"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
   /users/self/balance:
     get:
       tags: [ "users" ]
@@ -368,9 +450,11 @@ definitions:
       id:
         type: "string"
         format: "uuid"
+        example: "de28ec3c-6ce4-4574-a9f8-2d26d1f46d18"
       owner_id:
         type: "string"
         format: "uuid"
+        example: "51526c9c-5cb0-4a15-b89a-4f1c18d5daea"
       name:
         type: "string"
         example: "Friends"
@@ -470,5 +554,6 @@ definitions:
         format: "email"
       name:
         type: "string"
+        example: "John Doe"
 
 
