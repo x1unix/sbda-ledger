@@ -5,6 +5,8 @@ import (
 	"net/http"
 )
 
+var ErrNotImplemented = NewAPIError(http.StatusNotImplemented, "method not implemented")
+
 // APIError is HTTP error returned from API
 type APIError struct {
 	// Status is HTTP status code

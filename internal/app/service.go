@@ -46,7 +46,10 @@ func NewService(logger *zap.Logger, conn *Connectors, cfg *config.Config) *Servi
 	sessionRouter.Methods(http.MethodDelete).
 		HandlerFunc(hWrapper.WrapHandler(authHandler.Logout))
 
-	// Group management
+	// Group management.
+	//
+	// PathPrefix() doesn't require to add blank route (e.g. /groups)
+	// so, had to use a blank sub-router.
 	groupHandler := handler.NewGroupHandler(grpSvc)
 	groupRouter := srv.Router.NewRoute().Subrouter()
 	groupRouter.Use(requireAuth)
@@ -64,6 +67,19 @@ func NewService(logger *zap.Logger, conn *Connectors, cfg *config.Config) *Servi
 		HandlerFunc(hWrapper.WrapHandler(groupHandler.AddMembers))
 	groupRouter.Path("/groups/{groupId}/members/{userId}").Methods(http.MethodDelete).
 		HandlerFunc(hWrapper.WrapHandler(groupHandler.RemoveMember))
+
+	// Users
+	usrHandler := handler.NewUserHandler(userSvc)
+	usrRouter := srv.Router.NewRoute().Subrouter()
+	usrRouter.Use(requireAuth)
+	usrRouter.Path("/users").Methods(http.MethodGet).
+		HandlerFunc(hWrapper.WrapResourceHandler(usrHandler.GetUsersList))
+	usrRouter.Path("/users/self").Methods(http.MethodGet).
+		HandlerFunc(hWrapper.WrapResourceHandler(usrHandler.GetCurrentUser))
+	usrRouter.Path("/users/self/balance").Methods(http.MethodGet).
+		HandlerFunc(hWrapper.WrapResourceHandler(usrHandler.GetBalance))
+	usrRouter.Path("/users/{userId}").Methods(http.MethodGet).
+		HandlerFunc(hWrapper.WrapResourceHandler(usrHandler.GetByID))
 
 	return &Service{
 		server: srv,

@@ -8,6 +8,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/x1unix/sbda-ledger/internal/model/user"
 	"github.com/x1unix/sbda-ledger/internal/service"
+	"github.com/x1unix/sbda-ledger/internal/web"
 )
 
 const (
@@ -28,6 +29,20 @@ type UserRepository struct {
 // NewUserRepository is UserRepository constructor
 func NewUserRepository(db *sqlx.DB) *UserRepository {
 	return &UserRepository{db: db}
+}
+
+func (r UserRepository) AllUsers(ctx context.Context) (user.Users, error) {
+	q, args, err := psql.Select(userCols...).From(tableUsers).ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	var out user.Users
+	err = r.db.SelectContext(ctx, &out, q, args...)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	return out, err
 }
 
 func (r UserRepository) AddUser(ctx context.Context, u user.User) (*user.ID, error) {
@@ -53,7 +68,23 @@ func (r UserRepository) UserByEmail(ctx context.Context, email string) (*user.Us
 	}
 	u := new(user.User)
 	err = r.db.GetContext(ctx, u, q, args...)
+	// UserByEmail is handler differently
 	return u, wrapRecordError(err)
+}
+
+func (r UserRepository) UserByID(ctx context.Context, uid user.ID) (*user.User, error) {
+	q, args, err := psql.Select(userCols...).From(tableUsers).Where(squirrel.Eq{
+		colID: uid,
+	}).Limit(1).ToSql()
+	if err != nil {
+		return nil, err
+	}
+	u := new(user.User)
+	err = r.db.GetContext(ctx, u, q, args...)
+	if err == sql.ErrNoRows {
+		return nil, web.NewErrNotFound("user not found")
+	}
+	return u, err
 }
 
 func (r UserRepository) Exists(email string) (bool, error) {

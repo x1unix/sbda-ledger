@@ -26,6 +26,12 @@ type UserStorage interface {
 	// UserByEmail finds user by email
 	UserByEmail(ctx context.Context, email string) (*user.User, error)
 
+	// UserByID returns user by ID
+	UserByID(ctx context.Context, uid user.ID) (*user.User, error)
+
+	// AllUsers returns all users
+	AllUsers(ctx context.Context) (user.Users, error)
+
 	// Exists checks if user with specified email exists
 	Exists(email string) (bool, error)
 }
@@ -40,6 +46,16 @@ func NewUsersService(log *zap.Logger, store UserStorage) *UsersService {
 		log:   log.Named("service.users"),
 		store: store,
 	}
+}
+
+// GetAll returns all users
+func (s UsersService) GetAll(ctx context.Context) (user.Users, error) {
+	return s.store.AllUsers(ctx)
+}
+
+// UserByID returns user by id
+func (s UsersService) UserByID(ctx context.Context, uid user.ID) (*user.User, error) {
+	return s.store.UserByID(ctx, uid)
 }
 
 // UserByEmail finds user by email
