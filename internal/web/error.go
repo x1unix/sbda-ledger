@@ -1,6 +1,9 @@
 package web
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
 
 // APIError is HTTP error returned from API
 type APIError struct {
@@ -12,6 +15,18 @@ type APIError struct {
 
 	// Data is optional error data
 	Data interface{} `json:"data,omitempty"`
+}
+
+// NewAPIError constructs new API error
+func NewAPIError(status int, format string, args ...interface{}) *APIError {
+	if len(args) > 0 {
+		format = fmt.Sprintf(format, args...)
+	}
+
+	return &APIError{
+		Status:  status,
+		Message: format,
+	}
 }
 
 // Error implements error interface
@@ -28,13 +43,23 @@ type APIErrorer interface {
 }
 
 // NewErrBadRequest returns a new bad request API error
-func NewErrBadRequest(msg string) *APIError {
-	return &APIError{Status: http.StatusBadRequest, Message: msg}
+func NewErrBadRequest(msg string, args ...interface{}) *APIError {
+	return NewAPIError(http.StatusBadRequest, msg, args...)
 }
 
 // NewErrUnauthorized returns a new unauthorized API error
-func NewErrUnauthorized(msg string) *APIError {
-	return &APIError{Status: http.StatusUnauthorized, Message: msg}
+func NewErrUnauthorized(msg string, args ...interface{}) *APIError {
+	return NewAPIError(http.StatusUnauthorized, msg, args...)
+}
+
+// NewErrNotFound returns new not found error
+func NewErrNotFound(msg string, args ...interface{}) *APIError {
+	return NewAPIError(http.StatusNotFound, msg, args...)
+}
+
+// NewErrForbidden returns new forbidden error
+func NewErrForbidden(msg string, args ...interface{}) *APIError {
+	return NewAPIError(http.StatusForbidden, msg, args...)
 }
 
 // ToAPIError constructs APIError from passed error.

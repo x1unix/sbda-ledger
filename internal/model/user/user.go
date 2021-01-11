@@ -20,6 +20,8 @@ type Props struct {
 	Name  string `json:"name" db:"name" validate:"required,min=3,max=64,name"`
 }
 
+type Users = []User
+
 type User struct {
 	Props
 

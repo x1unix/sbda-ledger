@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/x1unix/sbda-ledger/internal/service"
+	"github.com/x1unix/sbda-ledger/internal/web"
 )
 
 var (
@@ -26,7 +26,7 @@ func checkAffectedRows(r sql.Result) error {
 	}
 
 	if affected == 0 {
-		return service.ErrNotExists
+		return web.NewErrNotFound("item not found")
 	}
 
 	return nil
