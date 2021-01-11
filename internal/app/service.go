@@ -48,21 +48,21 @@ func NewService(logger *zap.Logger, conn *Connectors, cfg *config.Config) *Servi
 
 	// Group management
 	groupHandler := handler.NewGroupHandler(grpSvc)
-	groupRouter := srv.Router.PathPrefix("/groups").Subrouter()
+	groupRouter := srv.Router.NewRoute().Subrouter()
 	groupRouter.Use(requireAuth)
-	groupRouter.Path("").Methods(http.MethodGet).
+	groupRouter.Path("/groups").Methods(http.MethodGet).
 		HandlerFunc(hWrapper.WrapResourceHandler(groupHandler.GetUserGroups))
-	groupRouter.Path("").Methods(http.MethodPost).
+	groupRouter.Path("/groups").Methods(http.MethodPost).
 		HandlerFunc(hWrapper.WrapResourceHandler(groupHandler.CreateGroup))
-	groupRouter.Path("/{groupId}").Methods(http.MethodGet).
-		HandlerFunc(hWrapper.WrapResourceHandler(groupHandler.GetUserGroups))
-	groupRouter.Path("/{groupId}").Methods(http.MethodDelete).
+	groupRouter.Path("/groups/{groupId}").Methods(http.MethodGet).
+		HandlerFunc(hWrapper.WrapResourceHandler(groupHandler.GetGroupInfo))
+	groupRouter.Path("/groups/{groupId}").Methods(http.MethodDelete).
 		HandlerFunc(hWrapper.WrapHandler(groupHandler.DeleteGroup))
-	groupRouter.Path("/{groupId}/members").Methods(http.MethodGet).
+	groupRouter.Path("/groups/{groupId}/members").Methods(http.MethodGet).
 		HandlerFunc(hWrapper.WrapResourceHandler(groupHandler.GetMembers))
-	groupRouter.Path("/{groupId}/members").Methods(http.MethodPost).
+	groupRouter.Path("/groups/{groupId}/members").Methods(http.MethodPost).
 		HandlerFunc(hWrapper.WrapHandler(groupHandler.AddMembers))
-	groupRouter.Path("/{groupId}/members/{userId}").Methods(http.MethodDelete).
+	groupRouter.Path("/groups/{groupId}/members/{userId}").Methods(http.MethodDelete).
 		HandlerFunc(hWrapper.WrapHandler(groupHandler.RemoveMember))
 
 	return &Service{

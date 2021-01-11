@@ -27,7 +27,7 @@ func (h GroupHandler) CreateGroup(r *http.Request) (interface{}, error) {
 	}
 
 	var req request.GroupCreateRequest
-	if err := UnmarshalAndValidate(r.Body, &r); err != nil {
+	if err := UnmarshalAndValidate(r.Body, &req); err != nil {
 		return nil, err
 	}
 
