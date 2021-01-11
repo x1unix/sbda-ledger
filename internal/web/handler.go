@@ -19,7 +19,7 @@ type HandlerFunc = func(rw http.ResponseWriter, req *http.Request) error
 
 // ResourceHandlerFunc is http.HandlerFunc extension which can return
 // result which will be encoded to JSON or response error.
-type ResourceHandlerFunc = func(rw http.ResponseWriter, req *http.Request) (interface{}, error)
+type ResourceHandlerFunc = func(req *http.Request) (interface{}, error)
 
 // MiddlewareFunc is request wrapper
 type MiddlewareFunc = func(rw http.ResponseWriter, req *http.Request) (*http.Request, error)
@@ -81,7 +81,7 @@ func (w Wrapper) WrapHandler(handler HandlerFunc, wrappers ...MiddlewareFunc) ht
 func (w Wrapper) WrapResourceHandler(h ResourceHandlerFunc, mw ...MiddlewareFunc) http.HandlerFunc {
 	return w.WrapHandler(func(rw http.ResponseWriter, req *http.Request) error {
 		rw.Header().Set("Content-Type", "application/json")
-		obj, err := h(rw, req)
+		obj, err := h(req)
 		if err != nil {
 			return err
 		}

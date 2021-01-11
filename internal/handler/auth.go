@@ -21,7 +21,7 @@ func NewAuthHandler(userSvc *service.UsersService, authSvc *service.AuthService)
 	}
 }
 
-func (h AuthHandler) Register(_ http.ResponseWriter, r *http.Request) (interface{}, error) {
+func (h AuthHandler) Register(r *http.Request) (interface{}, error) {
 	var reg user.Registration
 	if err := UnmarshalAndValidate(r.Body, &reg); err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (h AuthHandler) Register(_ http.ResponseWriter, r *http.Request) (interface
 	}, nil
 }
 
-func (h AuthHandler) Login(_ http.ResponseWriter, r *http.Request) (interface{}, error) {
+func (h AuthHandler) Login(r *http.Request) (interface{}, error) {
 	var creds auth.Credentials
 	if err := UnmarshalAndValidate(r.Body, &creds); err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func (h AuthHandler) Login(_ http.ResponseWriter, r *http.Request) (interface{},
 	return h.authService.Authenticate(r.Context(), creds)
 }
 
-func (h AuthHandler) GetSession(_ http.ResponseWriter, r *http.Request) (interface{}, error) {
+func (h AuthHandler) GetSession(r *http.Request) (interface{}, error) {
 	sess := auth.SessionFromContext(r.Context())
 	if sess == nil {
 		return nil, service.ErrAuthRequired
