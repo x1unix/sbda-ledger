@@ -1,12 +1,17 @@
 package auth
 
 import (
+	"context"
 	"encoding/base64"
 	"errors"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/x1unix/sbda-ledger/internal/model/user"
+)
+
+const (
+	ctxSessionKey = "session"
 )
 
 var (
@@ -47,6 +52,11 @@ type Session struct {
 // Token returns auth token for a session
 func (s Session) Token() Token {
 	return Token(base64.StdEncoding.EncodeToString(s.ID[:]))
+}
+
+// ContextWithSession wraps context with session value
+func ContextWithSession(ctx context.Context, sess *Session) context.Context {
+	return context.WithValue(ctx, ctxSessionKey, sess)
 }
 
 // NewSession returns new session

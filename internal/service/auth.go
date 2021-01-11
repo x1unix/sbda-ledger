@@ -103,13 +103,8 @@ func (s AuthService) CreateSession(ctx context.Context, uid user.ID, remember bo
 
 // GetSession retrieves session using provided token.
 //
-// Returns ErrAuthRequired if session or token are invalid.
-func (s AuthService) GetSession(ctx context.Context, t auth.Token) (*auth.Session, error) {
-	ssid, err := t.SessionID()
-	if err != nil {
-		return nil, ErrAuthRequired
-	}
-
+// Returns ErrAuthRequired if session is invalid.
+func (s AuthService) GetSession(ctx context.Context, ssid uuid.UUID) (*auth.Session, error) {
 	sess, err := s.store.GetSession(ctx, ssid)
 	if err != nil {
 		switch err {
