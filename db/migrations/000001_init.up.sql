@@ -57,7 +57,7 @@ CREATE TABLE "loans" (
     "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     "lender_id" uuid NOT NULL,
     "debtor_id" uuid NOT NULL,
-    "amount" integer NOT NULL DEFAULT 0,
+    "amount" integer NOT NULL CHECK (amount >= 0),
 
     -- I added "ON DELETE CASCADE" constraint just for DB consistency.
     -- API never removes created users from `users` table.
