@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/x1unix/sbda-ledger/internal/model"
 	"github.com/x1unix/sbda-ledger/internal/model/user"
@@ -43,7 +44,7 @@ func NewUsersService(log *zap.Logger, store UserStorage) *UsersService {
 
 // UserByEmail finds user by email
 func (s UsersService) UserByEmail(ctx context.Context, email string) (*user.User, error) {
-	usr, err := s.store.UserByEmail(ctx, email)
+	usr, err := s.store.UserByEmail(ctx, strings.ToLower(email))
 	if err == ErrNotExists {
 		return nil, err
 	}
@@ -60,7 +61,8 @@ func (s UsersService) AddUser(ctx context.Context, usrReg user.Registration) (*u
 		return nil, err
 	}
 
-	// TODO: should I do this in single isolated transaction?
+	// TODO: should I do this in single isolated transaction? 🤔
+	usrReg.Email = strings.ToLower(usrReg.Email)
 	exists, err := s.store.Exists(usrReg.Email)
 	if err != nil {
 		return nil, fmt.Errorf("can't check if user exists: %w", err)

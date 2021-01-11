@@ -16,7 +16,7 @@ type Registration struct {
 }
 
 type Props struct {
-	Email string `json:"email" db:"email" validate:"required,email"`
+	Email string `json:"email" db:"email" validate:"required,email,max=254"`
 	Name  string `json:"name" db:"name" validate:"required,min=3,max=64,name"`
 }
 
