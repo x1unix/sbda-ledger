@@ -38,7 +38,6 @@ func runMigration(conn *sqlx.DB, p migrationParams) error {
 	}
 
 	if err == migrate.ErrNoChange {
-		zap.L().Info("no database changes")
 		return nil
 	}
 
