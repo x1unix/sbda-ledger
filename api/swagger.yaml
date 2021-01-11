@@ -1,0 +1,460 @@
+swagger: "2.0"
+info:
+  title: "Loans ledger API"
+  description: "Loans ledger API"
+  version: "1.0.0"
+host: "localhost:8080"
+basePath: "/"
+schemes:
+  - "http"
+  - "https"
+tags:
+  - name: "auth"
+    description: "Authentication"
+paths:
+  /auth:
+    post:
+      tags:
+        - "auth"
+      summary: "Authenticate and get request token"
+      operationId: "login"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Credentials"
+          required: true
+          schema:
+            $ref: "#/definitions/Credentials"
+      responses:
+        "200":
+          $ref: "#/definitions/LoginResult"
+        "400":
+          description: "Invalid username or request"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /auth/register:
+    post:
+      tags: ["auth"]
+      summary: "Register a new user"
+      operationId: "register"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "User registration params"
+          required: true
+          schema:
+            $ref: "#/definitions/Registration"
+      responses:
+        "200":
+          $ref: "#/definitions/LoginResult"
+        "400":
+          description: "Invalid username or request"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /auth/session:
+    get:
+      tags: ["auth"]
+      summary: "Get user session"
+      operationId: "session.get"
+      produces:
+        - "application/json"
+      security:
+        - auth_token: []
+      responses:
+        "200":
+          description: "Current user session"
+          schema:
+            $ref: "#/definitions/Session"
+        "401":
+          description: "Not authorised"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    delete:
+      tags: ["auth"]
+      summary: "Log out"
+      operationId: "logout"
+      security:
+        - auth_token: [ ]
+      responses:
+        "201":
+          description: "Empty content"
+        "401":
+          description: "Not authorised"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /groups:
+    post:
+      tags: ["groups"]
+      summary: "Create a new group"
+      operationId: "group.create"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      security:
+      - auth_token: [ ]
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Group creation arguments"
+        required: true
+        schema:
+          $ref: "#/definitions/GroupInfo"
+      responses:
+        "200":
+          $ref: "#/definitions/Group"
+        "400":
+          description: "Invalid username or request"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    get:
+      tags: ["groups"]
+      summary: "Get user groups"
+      operationId: "groups.get"
+      produces:
+      - "application/json"
+      security:
+      - auth_token: []
+      responses:
+        "200":
+          description: "List of user groups"
+          schema:
+            $ref: "#/definitions/Groups"
+        "401":
+          description: "Not authorised"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /groups/{groupId}:
+    get:
+      tags: ["groups"]
+      summary: "Get group by ID"
+      operationId: "groups.by_id"
+      parameters:
+        - in: path
+          name: groupId
+          type: string
+          format: uuid
+          required: true
+          description: "Group ID"
+      produces:
+        - "application/json"
+      security:
+        - auth_token: []
+      responses:
+        "200":
+          description: "Group information"
+          schema:
+            $ref: "#/definitions/Group"
+        "403":
+          description: "Forbidden"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "401":
+          description: "Not authorised"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    delete:
+      tags: [ "groups" ]
+      summary: "Delete group by ID"
+      operationId: "groups.delete"
+      parameters:
+        - in: path
+          name: groupId
+          type: string
+          format: uuid
+          required: true
+          description: "Group ID"
+      produces:
+        - "application/json"
+      security:
+        - auth_token: [ ]
+      responses:
+        "200":
+          description: "List of user groups"
+          schema:
+            $ref: "#/definitions/Groups"
+        "403":
+          description: "Forbidden"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "401":
+          description: "Not authorised"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /groups/{groupId}/members:
+    get:
+      tags: ["groups"]
+      summary: "Get group members"
+      operationId: "groups.members.get"
+      parameters:
+        - in: path
+          name: groupId
+          type: string
+          format: uuid
+          required: true
+          description: "Group ID"
+      produces:
+        - "application/json"
+      security:
+        - auth_token: []
+      responses:
+        "200":
+          description: "Group members list"
+          schema:
+            type: "object"
+            properties:
+              members:
+                $ref: "#/definitions/Users"
+        "403":
+          description: "Forbidden"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "401":
+          description: "Not authorised"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    post:
+      tags: ["groups"]
+      summary: "Add group members"
+      operationId: "groups.members.add"
+      parameters:
+      - in: path
+        name: groupId
+        type: string
+        format: uuid
+        required: true
+        description: "Group ID"
+      - in: "body"
+        name: "body"
+        description: "Users to add to group"
+        required: true
+        schema:
+          type: object
+          properties:
+            ids:
+              description: "User IDs to add"
+              type: array
+              items:
+                type: string
+                format: uuid
+      produces:
+      - "application/json"
+      security:
+      - auth_token: [ ]
+      responses:
+        "201":
+          description: "No content"
+        "403":
+          description: "Forbidden"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "401":
+          description: "Not authorised"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /groups/{groupId}/members/{userId}:
+    delete:
+      tags: [ "groups" ]
+      summary: "Delete user from group"
+      operationId: "groups.members.delete"
+      parameters:
+      - in: path
+        name: groupId
+        type: string
+        format: uuid
+        required: true
+        description: "Group ID"
+      - in: path
+        name: userId
+        type: string
+        format: uuid
+        required: true
+        description: "User ID"
+      produces:
+        - "application/json"
+      security:
+        - auth_token: [ ]
+      responses:
+        "201":
+          description: "No content"
+        "403":
+          description: "Forbidden"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "401":
+          description: "Not authorised"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /users/self/balance:
+    get:
+      tags: [ "users" ]
+      summary: "Get self user balance"
+      operationId: "users.self.balance"
+      produces:
+      - "application/json"
+      security:
+      - auth_token: [ ]
+      responses:
+        "200":
+          description: "Balance status"
+          schema:
+            $ref: "#/definitions/BalanceStatus"
+        "403":
+          description: "Forbidden"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "401":
+          description: "Not authorised"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
+
+securityDefinitions:
+  auth_token:
+    description: "Auth token passed as bearer token"
+    type: "apiKey"
+    name: "Authorization"
+    in: "header"
+
+definitions:
+  BalanceStatus:
+    description: "Balance status"
+    type: "object"
+    readOnly: true
+    properties:
+      balance:
+        type: integer
+        description: "Balance in cents"
+  GroupInfo:
+    description: "Group creation params"
+    type: "object"
+    required: ["name"]
+    properties:
+      name:
+        type: "string"
+        example: "Friends"
+  Groups:
+    description: "List of groups"
+    type: "array"
+    items:
+      $ref: "#/definitions/Group"
+  Group:
+    description: "Group information"
+    type: "object"
+    readOnly: true
+    properties:
+      id:
+        type: "string"
+        format: "uuid"
+      owner_id:
+        type: "string"
+        format: "uuid"
+      name:
+        type: "string"
+        example: "Friends"
+
+  Credentials:
+    type: "object"
+    required: ["email", "password"]
+    properties:
+      email:
+        type: "string"
+        format: "email"
+      password:
+        type: "string"
+        format: "password"
+      remember:
+        type: "boolean"
+        description: "Store session for 14 days"
+  ErrorResponse:
+    type: "object"
+    properties:
+      error:
+        type: "object"
+        properties:
+          message:
+            type: "string"
+            example: "invalid request payload"
+          data:
+            description: "Additional error information, optional"
+            type: "object"
+            default: "null"
+            x-nullable: true
+  LoginResult:
+    type: "object"
+    description: "Login result containing user info and token"
+    readOnly: true
+    properties:
+      token:
+        type: "string"
+        format: "byte"
+        example: "zujokWq4SkuClZretKqSaQ=="
+        description: "Auth token"
+      user:
+        description: "User information"
+        $ref: "#/definitions/User"
+      session:
+        description: "Current session information"
+        $ref: "#/definitions/Session"
+  Session:
+    description: "User session"
+    type: "object"
+    readOnly: true
+    properties:
+      id:
+        description: "Session ID"
+        type: "string"
+        format: "uuid"
+      user_id:
+        description: "Session owner ID"
+        type: "string"
+        format: "uuid"
+      logged_at:
+        description: "Session creation time"
+        type: "string"
+        format: "date-time"
+      ttl:
+        description: "Session timeout in nanoseconds"
+        type: "integer"
+        format: "int64"
+  Registration:
+    type: "object"
+    description: "Sign up information"
+    required: ["email", "name", "password"]
+    properties:
+      email:
+        type: "string"
+        format: "email"
+      name:
+        type: "string"
+      password:
+        type: "string"
+        format: "password"
+  Users:
+    description: "list of users"
+    type: "array"
+    items:
+      $ref: "#/definitions/User"
+  User:
+    type: "object"
+    readOnly: true
+    description: "User information"
+    properties:
+      id:
+        type: "string"
+        format: "uuid"
+      email:
+        type: "string"
+        format: "email"
+      name:
+        type: "string"
+
+
