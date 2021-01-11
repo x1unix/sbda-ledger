@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/google/uuid"
 	"github.com/x1unix/sbda-ledger/internal/model/auth"
 	"github.com/x1unix/sbda-ledger/internal/model/user"
 	"github.com/x1unix/sbda-ledger/internal/service"
@@ -23,7 +24,7 @@ func NewSessionRepository(r redis.Cmdable) *SessionRepository {
 // CreateSession implements service.SessionStore
 func (r SessionRepository) CreateSession(ctx context.Context, uid user.ID, ttl time.Duration) (*auth.Session, error) {
 	sess := auth.NewSession(uid, ttl)
-	key := r.redisKeyFromToken(sess.Token())
+	key := r.redisKeyFromSessionID(sess.ID)
 	data, err := json.Marshal(sess)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal session: %w", err)
@@ -33,8 +34,8 @@ func (r SessionRepository) CreateSession(ctx context.Context, uid user.ID, ttl t
 }
 
 // GetSession implements service.SessionStore
-func (r SessionRepository) GetSession(ctx context.Context, token auth.Token) (*auth.Session, error) {
-	key := r.redisKeyFromToken(token)
+func (r SessionRepository) GetSession(ctx context.Context, ssid uuid.UUID) (*auth.Session, error) {
+	key := r.redisKeyFromSessionID(ssid)
 	val, err := r.redis.Get(ctx, key).Result()
 	if err == redis.Nil {
 		return nil, service.ErrSessionNotExists
@@ -53,8 +54,8 @@ func (r SessionRepository) GetSession(ctx context.Context, token auth.Token) (*a
 }
 
 // RemoveSession implements service.SessionStore
-func (r SessionRepository) RemoveSession(ctx context.Context, token auth.Token) error {
-	key := r.redisKeyFromToken(token)
+func (r SessionRepository) RemoveSession(ctx context.Context, ssid uuid.UUID) error {
+	key := r.redisKeyFromSessionID(ssid)
 	nAffected, err := r.redis.Del(ctx, key).Result()
 	if err == redis.Nil {
 		return service.ErrNotExists
@@ -69,6 +70,6 @@ func (r SessionRepository) RemoveSession(ctx context.Context, token auth.Token) 
 	return nil
 }
 
-func (_ SessionRepository) redisKeyFromToken(token auth.Token) string {
-	return "sess:" + string(token)
+func (_ SessionRepository) redisKeyFromSessionID(ssid uuid.UUID) string {
+	return "sess:" + ssid.String()
 }

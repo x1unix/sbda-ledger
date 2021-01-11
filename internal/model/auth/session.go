@@ -2,14 +2,39 @@ package auth
 
 import (
 	"encoding/base64"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/x1unix/sbda-ledger/internal/model/user"
 )
 
+var (
+	ErrInvalidToken = errors.New("invalid token")
+)
+
 // Token is user auth token
 type Token string
+
+// ParseToken parses session id from token string
+func ParseToken(t string) (uuid.UUID, error) {
+	return Token(t).SessionID()
+}
+
+// SessionID returns session id from token
+func (t Token) SessionID() (uuid.UUID, error) {
+	rawid, err := base64.StdEncoding.DecodeString(string(t))
+	if err != nil {
+		return uuid.Nil, ErrInvalidToken
+	}
+
+	ssid, err := uuid.FromBytes(rawid)
+	if err != nil {
+		return uuid.Nil, ErrInvalidToken
+	}
+
+	return ssid, nil
+}
 
 // Session contains user auth session
 type Session struct {

@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	ErrNotExists = web.NewBadRequestError("record not found")
-	ErrExists    = web.NewBadRequestError("record already exists")
+	ErrNotExists = web.NewErrBadRequest("record not found")
+	ErrExists    = web.NewErrBadRequest("record already exists")
 )
 
 // UserStorage provides user storage

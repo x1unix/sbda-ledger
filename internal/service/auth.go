@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/x1unix/sbda-ledger/internal/model/auth"
 	"github.com/x1unix/sbda-ledger/internal/model/user"
 	"github.com/x1unix/sbda-ledger/internal/web"
@@ -16,7 +17,8 @@ var (
 	ErrSessionNotExists = errors.New("session not exists")
 	ErrCorruptedSession = errors.New("corrupted session")
 
-	errInvalidCredentials = web.NewBadRequestError("invalid username or password")
+	ErrInvalidCredentials = web.NewErrBadRequest("invalid username or password")
+	ErrAuthRequired       = web.NewErrUnauthorized("authorization required")
 )
 
 const (
@@ -29,13 +31,13 @@ type SessionStore interface {
 	// CreateSession creates a new auth session
 	CreateSession(ctx context.Context, uid user.ID, ttl time.Duration) (*auth.Session, error)
 
-	// GetSession retrieves session by auth token.
+	// GetSession retrieves session by id.
 	//
 	// Returns ErrSessionNotExists if session not exists, or ErrCorruptedSession if session is not readable.
-	GetSession(ctx context.Context, token auth.Token) (*auth.Session, error)
+	GetSession(ctx context.Context, ssid uuid.UUID) (*auth.Session, error)
 
-	// RemoveSession revokes session by token
-	RemoveSession(ctx context.Context, token auth.Token) error
+	// RemoveSession revokes session by id
+	RemoveSession(ctx context.Context, ssid uuid.UUID) error
 }
 
 // AuthService is authentication service
@@ -48,16 +50,16 @@ type AuthService struct {
 // NewAuthService is AuthService constructor
 func NewAuthService(log *zap.Logger, store SessionStore) *AuthService {
 	return &AuthService{
-		log:   log,
+		log:   log.Named("service.auth"),
 		store: store,
 	}
 }
 
-// Login authenticates user with provided credentials and returns user info with session on success.
-func (s AuthService) Login(ctx context.Context, creds auth.Credentials) (*auth.LoginResult, error) {
+// Authenticate authenticates user with provided credentials and returns user info with session on success.
+func (s AuthService) Authenticate(ctx context.Context, creds auth.Credentials) (*auth.LoginResult, error) {
 	usr, err := s.users.UserByEmail(ctx, creds.Email)
 	if err == ErrNotExists {
-		return nil, errInvalidCredentials
+		return nil, ErrInvalidCredentials
 	}
 	if err != nil {
 		return nil, err
@@ -69,7 +71,7 @@ func (s AuthService) Login(ctx context.Context, creds auth.Credentials) (*auth.L
 	}
 
 	if !passEqual {
-		return nil, errInvalidCredentials
+		return nil, ErrInvalidCredentials
 	}
 
 	sess, err := s.CreateSession(ctx, usr.ID, creds.Remember)
@@ -97,4 +99,51 @@ func (s AuthService) CreateSession(ctx context.Context, uid user.ID, remember bo
 		return nil, fmt.Errorf("failed to create session: %w", err)
 	}
 	return sess, nil
+}
+
+// GetSession retrieves session using provided token.
+//
+// Returns ErrAuthRequired if session or token are invalid.
+func (s AuthService) GetSession(ctx context.Context, t auth.Token) (*auth.Session, error) {
+	ssid, err := t.SessionID()
+	if err != nil {
+		return nil, ErrAuthRequired
+	}
+
+	sess, err := s.store.GetSession(ctx, ssid)
+	if err != nil {
+		switch err {
+		case ErrSessionNotExists:
+			return nil, ErrAuthRequired
+		case ErrCorruptedSession:
+			s.dropCorruptedSession(ctx, ssid)
+			return nil, ErrAuthRequired
+		default:
+			return nil, err
+		}
+	}
+
+	return sess, nil
+}
+
+// ForgetSession removes session.
+//
+// Returns ErrAuthRequired if session not exists.
+func (s AuthService) ForgetSession(ctx context.Context, ssid uuid.UUID) error {
+	err := s.store.RemoveSession(ctx, ssid)
+	if err == ErrSessionNotExists {
+		return ErrAuthRequired
+	}
+	return err
+}
+
+func (s AuthService) dropCorruptedSession(ctx context.Context, ssid uuid.UUID) {
+	if err := s.store.RemoveSession(ctx, ssid); err != nil {
+		s.log.Error("failed to remove corrupted session",
+			zap.String("ssid", ssid.String()),
+			zap.Error(err))
+		return
+	}
+
+	s.log.Warn("removed corrupted session", zap.String("ssid", ssid.String()))
 }

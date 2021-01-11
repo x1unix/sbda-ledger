@@ -27,9 +27,14 @@ type APIErrorer interface {
 	APIError() *APIError
 }
 
-// NewBadRequestError returns a new bad request API error
-func NewBadRequestError(msg string) *APIError {
+// NewErrBadRequest returns a new bad request API error
+func NewErrBadRequest(msg string) *APIError {
 	return &APIError{Status: http.StatusBadRequest, Message: msg}
+}
+
+// NewErrUnauthorized returns a new unauthorized API error
+func NewErrUnauthorized(msg string) *APIError {
+	return &APIError{Status: http.StatusUnauthorized, Message: msg}
 }
 
 // ToAPIError constructs APIError from passed error.

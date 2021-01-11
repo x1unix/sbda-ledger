@@ -29,7 +29,7 @@ func (r UserRepository) AddUser(ctx context.Context, u user.User) error {
 	_, err := psql.Insert(tableUsers).SetMap(map[string]interface{}{
 		colEmail:    u.Email,
 		colName:     u.Name,
-		colPassword: u.Password,
+		colPassword: u.PasswordHash,
 	}).RunWith(r.db).ExecContext(ctx)
 	return err
 }

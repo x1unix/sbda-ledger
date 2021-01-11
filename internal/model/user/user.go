@@ -26,8 +26,8 @@ type User struct {
 	// ID is unique user ID
 	ID pgtype.UUID `json:"id" db:"id"`
 
-	// Password contains encrypted password and salt in bcrypt format
-	Password string `json:"-" db:"password"`
+	// PasswordHash contains encrypted password and salt in bcrypt format
+	PasswordHash string `json:"-" db:"password"`
 }
 
 // SetPassword encrypts and updates user password
@@ -38,17 +38,17 @@ func (u *User) SetPassword(newPassword string) error {
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
 
-	u.Password = string(hash)
+	u.PasswordHash = string(hash)
 	return nil
 }
 
 // ComparePassword compares password with hashed in user
 func (u User) ComparePassword(pwd string) (bool, error) {
-	if u.Password == "" {
+	if u.PasswordHash == "" {
 		return false, errors.New("origin password not available")
 	}
 
-	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(pwd))
+	err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(pwd))
 	if err == bcrypt.ErrMismatchedHashAndPassword {
 		return false, nil
 	}
