@@ -10,6 +10,16 @@ import (
 
 type ID = pgtype.UUID
 
+// IDToString converts user.ID to string
+func IDToString(uid ID) string {
+	var out string
+
+	// error occurs only when invalid type passed,
+	// so in this case it won't occur
+	_ = uid.AssignTo(&out)
+	return out
+}
+
 type Registration struct {
 	Props
 	Password string `json:"password" validate:"required,min=6"`
