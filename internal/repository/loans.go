@@ -26,7 +26,7 @@ func NewLoansRepository(db *sqlx.DB) *LoansRepository {
 	return &LoansRepository{db: db}
 }
 
-func (r LoansRepository) AddLoan(ctx context.Context, records []loan.Record) error {
+func (r LoansRepository) AddLoans(ctx context.Context, records []loan.Loan) error {
 	q := psql.Insert(tableLoans).Columns(colLenderID, colDebtorID, colAmount)
 	for _, record := range records {
 		q = q.Values(record.LenderID, record.DebtorID, record.Amount)
