@@ -61,6 +61,31 @@ func NewLoanService(ctx context.Context, log *zap.Logger, cache BalanceStorage, 
 	return &LoanService{rootCtx: ctx, log: log.Named("service.loans"), cache: cache, loans: loans}
 }
 
+func (svc LoanService) GetUserBalance(ctx context.Context, uid user.ID) (loan.Amount, error) {
+	balance, err := svc.cache.GetBalance(ctx, uid)
+	if err == nil {
+		// Return denormalized value if present
+		return balance, nil
+	}
+
+	if err == ErrNoBalance {
+		svc.log.Info("no user balance in cache, populating balance cache", zap.Any("uid", uid))
+	} else {
+		svc.log.Warn("failed to read cache, repopulating balance", zap.Error(err), zap.Any("uid", uid))
+	}
+
+	balance, err = svc.loans.UserBalance(ctx, uid)
+	if err != nil {
+		svc.log.Error("failed calculate user balance", zap.Error(err), zap.Any("uid", uid))
+		return 0, fmt.Errorf("failed to get user balance: %w", err)
+	}
+
+	if err = svc.cache.SetBalance(ctx, uid, balance); err != nil {
+		svc.log.Error("failed to cache user balance", zap.Error(err), zap.Any("uid", uid))
+	}
+	return balance, nil
+}
+
 // AddLoan adds a loan for each debtor from lender by specified amount.
 //
 // Amount is not divided between debtors, but assigned to each debtor individually.
