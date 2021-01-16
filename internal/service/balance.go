@@ -43,6 +43,9 @@ type BalanceStorage interface {
 type LoansStorage interface {
 	// AddLoans adds loan records
 	AddLoans(ctx context.Context, records []loan.Loan) error
+
+	// UserBalance calculates user balance using transaction log
+	UserBalance(ctx context.Context, uid user.ID) (loan.Amount, error)
 }
 
 // LoanService manages user dept balance and transactions history
