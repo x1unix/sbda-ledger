@@ -146,6 +146,19 @@ func (r GroupRepository) GroupsByUser(ctx context.Context, uid user.ID) (user.Gr
 	return out, err
 }
 
+func (r GroupRepository) GroupMemberIDs(ctx context.Context, gid user.GroupID) ([]user.ID, error) {
+	const query = "(SELECT owner_id as uid from " + tableGroups + " WHERE id = $1)" +
+		" UNION " +
+		"(SELECT member_id as uid FROM " + tableGroupMembers + " WHERE group_id = $1)"
+	var out []user.ID
+	err := r.db.SelectContext(ctx, &out, query, gid)
+	if err == sql.ErrNoRows {
+		return nil, service.ErrGroupNotFound
+	}
+
+	return out, nil
+}
+
 // GroupsByAuthor implements service.GroupManager
 func (r GroupRepository) GroupsByAuthor(ctx context.Context, uid user.ID) (user.Groups, error) {
 	q, args, err := psql.Select(groupCols...).From(tableGroups).

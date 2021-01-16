@@ -53,7 +53,7 @@ type LoanService struct {
 	loans   LoansStorage
 }
 
-// NewLoanService is LoanService constructor
+// NewLoanService is LoanService constructor.
 func NewLoanService(ctx context.Context, log *zap.Logger, cache BalanceStorage, loans LoansStorage) *LoanService {
 	return &LoanService{rootCtx: ctx, log: log.Named("service.loans"), cache: cache, loans: loans}
 }
@@ -61,6 +61,8 @@ func NewLoanService(ctx context.Context, log *zap.Logger, cache BalanceStorage, 
 // AddLoan adds a loan for each debtor from lender by specified amount.
 //
 // Amount is not divided between debtors, but assigned to each debtor individually.
+//
+// Implements service.LoanAdder interface.
 func (svc LoanService) AddLoan(ctx context.Context, lender user.ID, amount loan.Amount, debtors []user.ID) error {
 	// append() to pre-allocated slice is still heavier
 	// than index assign, but I want to make things a bit faster.

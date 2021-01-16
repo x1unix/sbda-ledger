@@ -19,12 +19,19 @@ type Service struct {
 	logger *zap.Logger
 }
 
-func NewService(logger *zap.Logger, conn *Connectors, cfg *config.Config) *Service {
+func NewService(baseCtx context.Context, logger *zap.Logger, conn *Connectors, cfg *config.Config) *Service {
 	srv := web.NewServer(cfg.Server.ListenParams())
 
-	userSvc := service.NewUsersService(logger, repository.NewUserRepository(conn.DB))
-	authSvc := service.NewAuthService(logger, userSvc, repository.NewSessionRepository(conn.Redis))
-	grpSvc := service.NewGroupService(repository.NewGroupRepository(conn.DB))
+	balanceStore := repository.NewBalanceRepository(conn.Redis)
+	loansStore := repository.NewLoansRepository(conn.DB)
+	groupStore := repository.NewGroupRepository(conn.DB)
+	userStore := repository.NewUserRepository(conn.DB)
+	sessionStore := repository.NewSessionRepository(conn.Redis)
+
+	userSvc := service.NewUsersService(logger, userStore)
+	authSvc := service.NewAuthService(logger, userSvc, sessionStore)
+	loanSvc := service.NewLoanService(baseCtx, logger, balanceStore, loansStore)
+	grpSvc := service.NewGroupService(logger, groupStore, loanSvc)
 
 	hWrapper := web.NewWrapper(logger.Named("http"))
 	requireAuth := hWrapper.MiddlewareFunc(middleware.NewAuthMiddleware(authSvc))

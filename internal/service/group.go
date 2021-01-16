@@ -4,9 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 
+	"github.com/x1unix/sbda-ledger/internal/model/loan"
 	"github.com/x1unix/sbda-ledger/internal/model/user"
 	"github.com/x1unix/sbda-ledger/internal/web"
+	"go.uber.org/zap"
 )
 
 var (
@@ -36,15 +39,25 @@ type GroupManager interface {
 
 	// GroupsByUser returns all groups where user is owner or member.
 	GroupsByUser(ctx context.Context, uid user.ID) (user.Groups, error)
+
+	// GroupMemberIDs returns list of users which are members of group, including group owner.
+	GroupMemberIDs(ctx context.Context, gid user.GroupID) ([]user.ID, error)
+}
+
+type LoanAdder interface {
+	// AddLoan adds a loan for each debtor from lender by specified amount.
+	AddLoan(ctx context.Context, lender user.ID, amount loan.Amount, debtors []user.ID) error
 }
 
 type GroupService struct {
-	groups GroupManager
+	log       *zap.Logger
+	groups    GroupManager
+	loanAdder LoanAdder
 }
 
 // NewGroupService is GroupService constructor
-func NewGroupService(groups GroupManager) *GroupService {
-	return &GroupService{groups: groups}
+func NewGroupService(log *zap.Logger, groups GroupManager, loanAdder LoanAdder) *GroupService {
+	return &GroupService{log: log.Named("service.groups"), groups: groups, loanAdder: loanAdder}
 }
 
 func (r GroupService) checkGroupActor(ctx context.Context, actor user.ID, gid user.GroupID) error {
@@ -153,4 +166,52 @@ func (r GroupService) GetGroupInfo(ctx context.Context, gid user.GroupID) (*user
 		Group:   *g,
 		Members: members,
 	}, nil
+}
+
+func (r GroupService) ShareExpense(ctx context.Context, actorID user.ID, amount loan.Amount, gid user.GroupID) error {
+	members, err := r.groups.GroupMemberIDs(ctx, gid)
+	if err == ErrGroupNotFound {
+		return web.NewErrNotFound("group not exists")
+	}
+	if err != nil {
+		return fmt.Errorf("failed to get group member list: %w", err)
+	}
+
+	// group should have at least 2 members: owner and guest
+	if len(members) < 2 {
+		return web.NewErrBadRequest("group is empty")
+	}
+
+	// Select everyone except actor ID as debtor,
+	// simultaneously check if actor is part of group.
+	isActorMember := false
+	debtors := make([]user.ID, 0, len(members))
+	for _, uid := range members {
+		if uid.Bytes == actorID.Bytes {
+			isActorMember = true
+			continue
+		}
+
+		debtors = append(debtors, uid)
+	}
+
+	if !isActorMember {
+		return web.NewErrForbidden("user is not a member of the group")
+	}
+
+	// Calculate debt per member.
+	// All prices are represented in cents, and cent is a quantum value
+	// (in simple words - there is no thing like "half of cent", it's not Bitcoin).
+	//
+	// So final value should be rounded, or we gonna lose some money.
+	roundedDebt := math.Round(float64(amount) / float64(len(debtors)))
+	debtPerUser := loan.Amount(roundedDebt)
+
+	r.log.Debug("adding a new loan",
+		zap.Any("actor_id", actorID),
+		zap.Int64("amount_total", amount),
+		zap.Int64("amount_per_user", debtPerUser),
+		zap.Any("debtors", debtors))
+
+	return r.loanAdder.AddLoan(ctx, actorID, loan.Amount(roundedDebt), debtors)
 }
