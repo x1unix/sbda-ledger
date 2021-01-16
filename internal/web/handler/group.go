@@ -7,6 +7,7 @@ import (
 	"github.com/x1unix/sbda-ledger/internal/model"
 	"github.com/x1unix/sbda-ledger/internal/model/auth"
 	"github.com/x1unix/sbda-ledger/internal/model/request"
+	"github.com/x1unix/sbda-ledger/internal/model/user"
 	"github.com/x1unix/sbda-ledger/internal/service"
 )
 
@@ -35,8 +36,7 @@ func (h GroupHandler) CreateGroup(r *http.Request) (interface{}, error) {
 }
 
 func (h GroupHandler) GetGroupInfo(r *http.Request) (interface{}, error) {
-	vars := mux.Vars(r)
-	gid, err := model.DecodeUUID(vars["groupId"])
+	gid, err := groupIdFromRequest(r)
 	if err != nil {
 		return nil, err
 	}
@@ -66,8 +66,7 @@ func (h GroupHandler) DeleteGroup(w http.ResponseWriter, r *http.Request) error 
 		return service.ErrAuthRequired
 	}
 
-	vars := mux.Vars(r)
-	gid, err := model.DecodeUUID(vars["groupId"])
+	gid, err := groupIdFromRequest(r)
 	if err != nil {
 		return err
 	}
@@ -88,8 +87,7 @@ func (h GroupHandler) GetMembers(r *http.Request) (interface{}, error) {
 		return nil, service.ErrAuthRequired
 	}
 
-	vars := mux.Vars(r)
-	gid, err := model.DecodeUUID(vars["groupId"])
+	gid, err := groupIdFromRequest(r)
 	if err != nil {
 		return nil, err
 	}
@@ -109,8 +107,7 @@ func (h GroupHandler) AddMembers(w http.ResponseWriter, r *http.Request) error {
 		return service.ErrAuthRequired
 	}
 
-	vars := mux.Vars(r)
-	gid, err := model.DecodeUUID(vars["groupId"])
+	gid, err := groupIdFromRequest(r)
 	if err != nil {
 		return err
 	}
@@ -149,4 +146,35 @@ func (h GroupHandler) RemoveMember(w http.ResponseWriter, r *http.Request) error
 
 	w.WriteHeader(http.StatusNoContent)
 	return nil
+}
+
+func (h GroupHandler) LogExpense(w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
+	sess := auth.SessionFromContext(ctx)
+	if sess == nil {
+		return service.ErrAuthRequired
+	}
+
+	gid, err := groupIdFromRequest(r)
+	if err != nil {
+		return err
+	}
+
+	req := new(request.AmountRequest)
+	if err = UnmarshalAndValidate(r.Body, req); err != nil {
+		return err
+	}
+
+	err = h.groupService.ShareExpense(ctx, sess.UserID, req.Amount, *gid)
+	if err != nil {
+		return err
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	return nil
+}
+
+func groupIdFromRequest(r *http.Request) (*user.GroupID, error) {
+	vars := mux.Vars(r)
+	return model.DecodeUUID(vars["groupId"])
 }

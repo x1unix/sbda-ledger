@@ -68,6 +68,8 @@ func NewService(baseCtx context.Context, logger *zap.Logger, conn *Connectors, c
 		HandlerFunc(hWrapper.WrapResourceHandler(groupHandler.GetGroupInfo))
 	groupRouter.Path("/groups/{groupId}").Methods(http.MethodDelete).
 		HandlerFunc(hWrapper.WrapHandler(groupHandler.DeleteGroup))
+	groupRouter.Path("/groups/{groupId}/expenses").Methods(http.MethodPost).
+		HandlerFunc(hWrapper.WrapHandler(groupHandler.LogExpense))
 	groupRouter.Path("/groups/{groupId}/members").Methods(http.MethodGet).
 		HandlerFunc(hWrapper.WrapResourceHandler(groupHandler.GetMembers))
 	groupRouter.Path("/groups/{groupId}/members").Methods(http.MethodPost).
