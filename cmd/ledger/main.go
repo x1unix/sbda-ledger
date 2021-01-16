@@ -33,6 +33,6 @@ func main() {
 	}
 
 	defer conns.Close()
-	svc := app.NewService(logger, conns, cfg)
-	svc.Start(app.ApplicationContext())
+	svc := app.NewService(ctx, logger, conns, cfg)
+	svc.Start(ctx)
 }

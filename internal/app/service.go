@@ -6,10 +6,10 @@ import (
 	"sync"
 
 	"github.com/x1unix/sbda-ledger/internal/config"
-	"github.com/x1unix/sbda-ledger/internal/handler"
 	"github.com/x1unix/sbda-ledger/internal/repository"
 	"github.com/x1unix/sbda-ledger/internal/service"
 	"github.com/x1unix/sbda-ledger/internal/web"
+	"github.com/x1unix/sbda-ledger/internal/web/handler"
 	"github.com/x1unix/sbda-ledger/internal/web/middleware"
 	"go.uber.org/zap"
 )
