@@ -60,8 +60,8 @@ func NewGroupService(log *zap.Logger, groups GroupManager, loanAdder LoanAdder) 
 	return &GroupService{log: log.Named("service.groups"), groups: groups, loanAdder: loanAdder}
 }
 
-func (r GroupService) checkGroupActor(ctx context.Context, actor user.ID, gid user.GroupID) error {
-	owner, err := r.groups.GetGroupOwner(ctx, gid)
+func (svc GroupService) checkGroupActor(ctx context.Context, actor user.ID, gid user.GroupID) error {
+	owner, err := svc.groups.GetGroupOwner(ctx, gid)
 	if err == ErrGroupNotFound {
 		return web.NewErrNotFound("group not found")
 	}
@@ -82,8 +82,8 @@ func (r GroupService) checkGroupActor(ctx context.Context, actor user.ID, gid us
 }
 
 // AddGroup creates a new group
-func (r GroupService) AddGroup(ctx context.Context, name string, owner user.ID) (*user.Group, error) {
-	gid, err := r.groups.AddGroup(ctx, name, owner)
+func (svc GroupService) AddGroup(ctx context.Context, name string, owner user.ID) (*user.Group, error) {
+	gid, err := svc.groups.AddGroup(ctx, name, owner)
 	if err != nil {
 		return nil, err
 	}
@@ -96,12 +96,12 @@ func (r GroupService) AddGroup(ctx context.Context, name string, owner user.ID) 
 }
 
 // AddMembers adds members to a group
-func (r GroupService) AddMembers(ctx context.Context, actorId user.ID, gid user.GroupID, uids []user.ID) error {
+func (svc GroupService) AddMembers(ctx context.Context, actorId user.ID, gid user.GroupID, uids []user.ID) error {
 	if len(uids) == 0 {
 		return web.NewErrBadRequest("group member list is empty")
 	}
 
-	if err := r.checkGroupActor(ctx, actorId, gid); err != nil {
+	if err := svc.checkGroupActor(ctx, actorId, gid); err != nil {
 		return err
 	}
 
@@ -111,17 +111,17 @@ func (r GroupService) AddMembers(ctx context.Context, actorId user.ID, gid user.
 		}
 	}
 
-	return r.groups.AddGroupUsers(ctx, gid, uids)
+	return svc.groups.AddGroupUsers(ctx, gid, uids)
 }
 
 // GetMembers returns list of group members
-func (r GroupService) GetMembers(ctx context.Context, gid user.GroupID) (user.Users, error) {
-	return r.groups.GetGroupMembers(ctx, gid)
+func (svc GroupService) GetMembers(ctx context.Context, gid user.GroupID) (user.Users, error) {
+	return svc.groups.GetGroupMembers(ctx, gid)
 }
 
 // RemoveMember removes a member from a group
-func (r GroupService) RemoveMember(ctx context.Context, actorId user.ID, gid user.GroupID, uid user.ID) error {
-	if err := r.checkGroupActor(ctx, actorId, gid); err != nil {
+func (svc GroupService) RemoveMember(ctx context.Context, actorId user.ID, gid user.GroupID, uid user.ID) error {
+	if err := svc.checkGroupActor(ctx, actorId, gid); err != nil {
 		return err
 	}
 
@@ -129,26 +129,26 @@ func (r GroupService) RemoveMember(ctx context.Context, actorId user.ID, gid use
 		return web.NewErrBadRequest("group creator cannot be removed from the group")
 	}
 
-	return r.groups.DeleteGroupUser(ctx, gid, uid)
+	return svc.groups.DeleteGroupUser(ctx, gid, uid)
 }
 
 // DeleteGroup removes group
-func (r GroupService) DeleteGroup(ctx context.Context, actorId user.ID, gid user.GroupID) error {
-	if err := r.checkGroupActor(ctx, actorId, gid); err != nil {
+func (svc GroupService) DeleteGroup(ctx context.Context, actorId user.ID, gid user.GroupID) error {
+	if err := svc.checkGroupActor(ctx, actorId, gid); err != nil {
 		return err
 	}
 
-	return r.groups.DeleteGroup(ctx, gid)
+	return svc.groups.DeleteGroup(ctx, gid)
 }
 
 // GroupsByUser returns all groups where user is owner or member.
-func (r GroupService) GroupsByUser(ctx context.Context, uid user.ID) (user.Groups, error) {
-	return r.groups.GroupsByUser(ctx, uid)
+func (svc GroupService) GroupsByUser(ctx context.Context, uid user.ID) (user.Groups, error) {
+	return svc.groups.GroupsByUser(ctx, uid)
 }
 
 // GetGroupInfo returns full group information
-func (r GroupService) GetGroupInfo(ctx context.Context, gid user.GroupID) (*user.GroupInfo, error) {
-	g, err := r.groups.GroupByID(ctx, gid)
+func (svc GroupService) GetGroupInfo(ctx context.Context, gid user.GroupID) (*user.GroupInfo, error) {
+	g, err := svc.groups.GroupByID(ctx, gid)
 	if err == ErrGroupNotFound {
 		return nil, web.NewErrNotFound("group not found")
 	}
@@ -157,7 +157,7 @@ func (r GroupService) GetGroupInfo(ctx context.Context, gid user.GroupID) (*user
 		return nil, err
 	}
 
-	members, err := r.groups.GetGroupMembers(ctx, gid)
+	members, err := svc.groups.GetGroupMembers(ctx, gid)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get group members: %w", err)
 	}
@@ -168,8 +168,8 @@ func (r GroupService) GetGroupInfo(ctx context.Context, gid user.GroupID) (*user
 	}, nil
 }
 
-func (r GroupService) ShareExpense(ctx context.Context, actorID user.ID, amount loan.Amount, gid user.GroupID) error {
-	members, err := r.groups.GroupMemberIDs(ctx, gid)
+func (svc GroupService) ShareExpense(ctx context.Context, actorID user.ID, amount loan.Amount, gid user.GroupID) error {
+	members, err := svc.groups.GroupMemberIDs(ctx, gid)
 	if err == ErrGroupNotFound {
 		return web.NewErrNotFound("group not exists")
 	}
@@ -207,11 +207,11 @@ func (r GroupService) ShareExpense(ctx context.Context, actorID user.ID, amount 
 	roundedDebt := math.Round(float64(amount) / float64(len(debtors)))
 	debtPerUser := loan.Amount(roundedDebt)
 
-	r.log.Debug("adding a new loan",
+	svc.log.Debug("adding a new loan",
 		zap.Any("actor_id", actorID),
 		zap.Int64("amount_total", amount),
 		zap.Int64("amount_per_user", debtPerUser),
 		zap.Any("debtors", debtors))
 
-	return r.loanAdder.AddLoan(ctx, actorID, loan.Amount(roundedDebt), debtors)
+	return svc.loanAdder.AddLoan(ctx, actorID, loan.Amount(roundedDebt), debtors)
 }

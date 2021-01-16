@@ -22,12 +22,14 @@ func NewBalanceRepository(r redis.Cmdable) *BalanceRepository {
 	return &BalanceRepository{redis: r}
 }
 
+// HasBalance implements service.BalanceStore
 func (r BalanceRepository) HasBalance(ctx context.Context, uid user.ID) (bool, error) {
 	key := formatBalanceKey(uid)
 	v, err := r.redis.Exists(ctx, key).Result()
 	return v > 0, err
 }
 
+// GetBalance implements service.BalanceStore
 func (r BalanceRepository) GetBalance(ctx context.Context, uid user.ID) (loan.Amount, error) {
 	key := formatBalanceKey(uid)
 	v, err := r.redis.Get(ctx, key).Result()
@@ -45,17 +47,20 @@ func (r BalanceRepository) GetBalance(ctx context.Context, uid user.ID) (loan.Am
 	return amount, nil
 }
 
+// SetBalance implements service.BalanceStore
 func (r BalanceRepository) SetBalance(ctx context.Context, uid user.ID, amount loan.Amount) error {
 	key := formatBalanceKey(uid)
 
 	return r.redis.Set(ctx, key, amount, 0).Err()
 }
 
+// UpdateBalance implements service.BalanceStore
 func (r BalanceRepository) UpdateBalance(ctx context.Context, uid user.ID, delta loan.Amount) error {
 	key := formatBalanceKey(uid)
 	return r.redis.IncrBy(ctx, key, delta).Err()
 }
 
+// ClearBalance implements service.BalanceStore
 func (r BalanceRepository) ClearBalance(ctx context.Context, uid user.ID) error {
 	key := formatBalanceKey(uid)
 	return r.redis.Del(ctx, key).Err()

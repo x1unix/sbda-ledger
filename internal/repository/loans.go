@@ -26,6 +26,7 @@ func NewLoansRepository(db *sqlx.DB) *LoansRepository {
 	return &LoansRepository{db: db}
 }
 
+// AddLoans implements service.LoansStorage
 func (r LoansRepository) AddLoans(ctx context.Context, records []loan.Loan) error {
 	q := psql.Insert(tableLoans).Columns(colLenderID, colDebtorID, colAmount)
 	for _, record := range records {
