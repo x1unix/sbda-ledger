@@ -61,6 +61,12 @@ func NewLoanService(ctx context.Context, log *zap.Logger, cache BalanceStorage, 
 	return &LoanService{rootCtx: ctx, log: log.Named("service.loans"), cache: cache, loans: loans}
 }
 
+// GetUserBalance provides user balance status.
+//
+// Balance is total summary of all loans and debts.
+//
+// Method tries to lookup denormalized value in cache.
+// If value is not cached or cache is borked, value will be calculated and stored in cache.
 func (svc LoanService) GetUserBalance(ctx context.Context, uid user.ID) (loan.Amount, error) {
 	balance, err := svc.cache.GetBalance(ctx, uid)
 	if err == nil {
@@ -76,7 +82,7 @@ func (svc LoanService) GetUserBalance(ctx context.Context, uid user.ID) (loan.Am
 
 	balance, err = svc.loans.UserBalance(ctx, uid)
 	if err != nil {
-		svc.log.Error("failed calculate user balance", zap.Error(err), zap.Any("uid", uid))
+		svc.log.Error("failed to calculate user balance", zap.Error(err), zap.Any("uid", uid))
 		return 0, fmt.Errorf("failed to get user balance: %w", err)
 	}
 
