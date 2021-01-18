@@ -101,7 +101,7 @@ func (svc LoanService) GetUserBalance(ctx context.Context, uid user.ID) ([]loan.
 func (svc LoanService) AddLoan(ctx context.Context, lender user.ID, amount loan.Amount, debtors []user.ID) error {
 	// append() to pre-allocated slice is still heavier
 	// than index assign, but I want to make things a bit faster.
-	// Someone might say that premature optimisation, but anyway
+	// Someone might say that this is a premature optimisation, but anyway
 	// I don't see a purpose for append() here.
 	transactions := make([]loan.Loan, len(debtors))
 	for i, debtor := range debtors {
