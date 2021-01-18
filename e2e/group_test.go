@@ -74,6 +74,122 @@ func TestGroup_Create(t *testing.T) {
 	}
 }
 
+func TestGroup_DeleteMembers(t *testing.T) {
+	groupOwner := mustCreateUser(t, "testgroupdelmem", "testgroupdelmem@mail.com")
+	groupMember := mustCreateUser(t, "testgroupdelmemmem", "testgroupdelmemmem@mail.com")
+	grp, err := Client.CreateGroup("testgroupdelmem", groupOwner.Token)
+	require.NoError(t, err, "failed to create a test group")
+	cases := []struct {
+		label     string
+		wantErr   string
+		groupID   string
+		memberID  string
+		token     ledger.Token
+		beforeRun func(t *testing.T)
+		afterRun  func(t *testing.T)
+	}{
+		{
+			label:    "require auth",
+			groupID:  uuid.New().String(),
+			memberID: uuid.New().String(),
+			wantErr:  "401 Unauthorized: authorization required",
+		},
+		{
+			label:    "require token",
+			groupID:  uuid.New().String(),
+			memberID: uuid.New().String(),
+			token:    ledger.Token(uuid.New().String()),
+			wantErr:  "401 Unauthorized: authorization required",
+		},
+		{
+			label:    "invalid group id",
+			groupID:  "fubar",
+			memberID: uuid.New().String(),
+			token:    groupOwner.Token,
+			wantErr:  "400 Bad Request: invalid resource id: invalid length for UUID",
+		},
+		{
+			label:    "group not exists",
+			groupID:  uuid.New().String(),
+			token:    groupOwner.Token,
+			memberID: uuid.New().String(),
+			wantErr:  "404 Not Found: group not found",
+		},
+		{
+			label:    "invalid member id",
+			groupID:  uuid.New().String(),
+			token:    groupOwner.Token,
+			memberID: "xx",
+			wantErr:  "400 Bad Request: invalid resource id",
+		},
+		{
+			label:    "other people can't modify group",
+			groupID:  grp.ID,
+			token:    groupMember.Token,
+			memberID: groupMember.User.ID,
+			wantErr:  "403 Forbidden: you have no right to control this group",
+		},
+		{
+			label:    "owner cannot remove itself",
+			groupID:  grp.ID,
+			token:    groupOwner.Token,
+			memberID: groupOwner.User.ID,
+			wantErr:  "400 Bad Request: group creator cannot be removed from the group",
+		},
+		{
+			label:    "members except owner cant' delete members",
+			groupID:  grp.ID,
+			token:    groupMember.Token,
+			memberID: groupMember.User.ID,
+			wantErr:  "403 Forbidden: you have no right to control this group",
+			beforeRun: func(t *testing.T) {
+				require.NoError(t, Client.AddGroupMembers(grp.ID, groupOwner.Token, groupMember.User.ID),
+					"can't add test member to a test group")
+			},
+			afterRun: func(t *testing.T) {
+				require.NoError(t, Client.DeleteGroupMember(grp.ID, groupMember.User.ID, groupOwner.Token),
+					"can't remove test member")
+			},
+		},
+		{
+			label:    "user not a member",
+			groupID:  grp.ID,
+			token:    groupOwner.Token,
+			memberID: uuid.New().String(),
+			wantErr:  "404 Not Found: item not found",
+		},
+		{
+			label:    "valid group",
+			groupID:  grp.ID,
+			token:    groupOwner.Token,
+			memberID: groupMember.User.ID,
+			beforeRun: func(t *testing.T) {
+				require.NoError(t, Client.AddGroupMembers(grp.ID, groupOwner.Token, groupMember.User.ID),
+					"can't add test member to a test group")
+			},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.label, func(t *testing.T) {
+			if c.beforeRun != nil {
+				c.beforeRun(t)
+			}
+			err := Client.DeleteGroupMember(c.groupID, c.memberID, c.token)
+			if c.wantErr != "" {
+				require.Error(t, err)
+				shouldContainError(t, err, c.wantErr)
+				if c.afterRun != nil {
+					c.afterRun(t)
+				}
+				return
+			}
+
+			require.NoError(t, err)
+		})
+	}
+}
+
 func TestGroup_AddMembers(t *testing.T) {
 	groupOwner := mustCreateUser(t, "testgroupaddmem", "testgroupaddmem@mail.com")
 	groupMember := mustCreateUser(t, "testgroupaddmemmem", "testgroupaddmemmem@mail.com")
