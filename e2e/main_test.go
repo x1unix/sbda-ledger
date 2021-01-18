@@ -22,6 +22,8 @@ var (
 	Redis  *redis.Client
 )
 
+const testPassword = "123456"
+
 func formatClientUrl(addr string) string {
 	if addr[0] == ':' {
 		addr = "localhost" + addr
@@ -95,4 +97,14 @@ func shouldContainError(t *testing.T, err error, part string) {
 	if msg := err.Error(); !strings.Contains(msg, part) {
 		t.Fatalf("%q should contain %q", msg, part)
 	}
+}
+
+func mustCreateUser(t *testing.T, name, email string) *ledger.LoginResponse {
+	rsp, err := Client.Register(ledger.RegisterRequest{
+		Email:    email,
+		Name:     name,
+		Password: testPassword,
+	})
+	require.NoErrorf(t, err, "failed to create a user %q required for the test", email)
+	return rsp
 }
