@@ -199,12 +199,12 @@ func (svc GroupService) ShareExpense(ctx context.Context, actorID user.ID, amoun
 		return web.NewErrForbidden("user is not a member of the group")
 	}
 
-	// Calculate debt per member.
+	// Calculate debt per member (including lender)
 	// All prices are represented in cents, and cent is a quantum value
 	// (in simple words - there is no thing like "half of cent", it's not Bitcoin).
 	//
 	// So final value should be rounded, or we gonna lose some money.
-	roundedDebt := math.Round(float64(amount) / float64(len(debtors)))
+	roundedDebt := math.Round(float64(amount) / float64(len(members)))
 	debtPerUser := loan.Amount(roundedDebt)
 
 	svc.log.Debug("adding a new loan",
