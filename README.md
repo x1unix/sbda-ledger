@@ -20,7 +20,9 @@ API documentation is available as [OpenAPI/Swagger spec](https://editor.swagger.
 
 Integration tests (e2e) are described in [e2e](e2e) directory.
 
-Start the service with `make run` and run `make e2e` to run e2e tests.
+* Start environment with `docker-compose start`
+* Start back-end API with `make run`
+* Run tests with `make e2e`
 
 ## Usage
 
