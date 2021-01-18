@@ -15,6 +15,15 @@ func TestGroup_Members(t *testing.T) {
 	owner := mustCreateUser(t, "testgroupfulladm", "testgroupfulladm@mail.com")
 	group, err := Client.CreateGroup("testgroupfull", owner.Token)
 	require.NoError(t, err, "failed to create test group")
+
+	// Check if group appears in group list
+	rsp, err := Client.Groups(owner.Token)
+	require.NoError(t, err, "can't get groups for user", owner.User.ID)
+	if len(rsp) != 1 {
+		t.Fatal("invalid user groups length", rsp)
+	}
+	require.Equal(t, *group, rsp[0])
+
 	tokens := make(map[string]ledger.Token, membersCount)
 	members := make([]ledger.User, membersCount)
 
@@ -40,8 +49,16 @@ func TestGroup_Members(t *testing.T) {
 	require.NoError(t, err)
 	compareMembers(t, members, memberList)
 
-	// drop everyone and ensure that changes were applied
 	for _, u := range members {
+		// check if group is in user membership status
+		rsp, err = Client.Groups(tokens[u.ID])
+		require.NoError(t, err, "can't get groups for user", u.ID, u.Name)
+		if len(rsp) != 1 {
+			t.Fatal("invalid user groups length", rsp)
+		}
+		require.Equal(t, *group, rsp[0])
+
+		// drop everyone and ensure that changes were applied
 		require.NoErrorf(t, Client.DeleteGroupMember(group.ID, u.ID, owner.Token),
 			"failed to delete %q from group", u.ID)
 	}
