@@ -6,4 +6,4 @@ all:
 include scripts/migrate.mk
 
 run:
-	go run ./cmd/ledger -c config.dev.toml
+	go run ./cmd/ledger -config config.dev.yaml
