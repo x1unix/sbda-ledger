@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/go-redis/redis/v8"
@@ -80,4 +81,15 @@ func truncateData() error {
 
 func TestPing(t *testing.T) {
 	require.NoError(t, Client.Ping())
+}
+
+func shouldContainError(t *testing.T, err error, part string) {
+	if err == nil {
+		t.Fatalf("got no error, but expected %q", part)
+		return
+	}
+
+	if msg := err.Error(); !strings.Contains(msg, part) {
+		t.Fatalf("%q should contain %q", msg, part)
+	}
 }

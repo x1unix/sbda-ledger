@@ -73,7 +73,7 @@ func (c Client) do(req *http.Request, out interface{}) error {
 	default:
 		errRsp := ErrorResponse{Status: rsp.Status}
 		if err := json.Unmarshal(content, &errRsp); err != nil {
-			errRsp.ErrorData.Error = string(content)
+			errRsp.ErrorData.Message = string(content)
 		}
 
 		return errRsp

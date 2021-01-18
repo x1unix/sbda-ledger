@@ -8,11 +8,11 @@ import (
 type ErrorResponse struct {
 	Status    string `json:"-"`
 	ErrorData struct {
-		Error string          `json:"error"`
-		Data  json.RawMessage `json:"data"`
+		Message string          `json:"message"`
+		Data    json.RawMessage `json:"data"`
 	} `json:"error"`
 }
 
 func (rsp ErrorResponse) Error() string {
-	return fmt.Sprintf("%s: %s", rsp.Status, rsp.ErrorData.Error)
+	return fmt.Sprintf("%s: %s", rsp.Status, rsp.ErrorData.Message)
 }
