@@ -48,17 +48,3 @@ func (r LoansRepository) GetUserBalance(ctx context.Context, uid user.ID) ([]loa
 	err := r.db.SelectContext(ctx, &out, query, uid)
 	return out, err
 }
-
-//
-//// GetUserBalance implements service.LoansStorage
-//func (r LoansRepository) GetUserBalance(ctx context.Context, uid user.ID) (out loan.Amount, err error) {
-//	// TODO: find a better way using LEFT JOIN
-//	const query = "SELECT SUM(amount) as balance FROM ((" +
-//		"SELECT amount FROM loans WHERE lender_id = $1" +
-//		") UNION ALL (" +
-//		"SELECT amount * -1 AS amount FROM loans WHERE debtor_id = $1" +
-//		")) AS balance"
-//
-//	err = r.db.GetContext(ctx, &out, query, uid)
-//	return out, err
-//}
