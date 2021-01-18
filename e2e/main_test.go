@@ -10,7 +10,6 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/jmoiron/sqlx"
 	"github.com/x1unix/sbda-ledger/internal/app"
-	"github.com/x1unix/sbda-ledger/internal/config"
 	"github.com/x1unix/sbda-ledger/pkg/ledger"
 )
 
@@ -49,18 +48,4 @@ func TestMain(m *testing.M) {
 	exitCode := m.Run()
 	conns.Close()
 	os.Exit(exitCode)
-}
-
-func provideTestDeps() (*config.Config, *app.Connectors, error) {
-	cfg, err := app.ProvideConfig("../config.dev.yaml")
-	if err != nil {
-		return nil, nil, err
-	}
-
-	conns, err := app.InstantiateConnectors(context.Background(), cfg)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return cfg, conns, err
 }
