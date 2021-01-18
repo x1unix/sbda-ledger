@@ -16,7 +16,7 @@ type Balance struct {
 }
 
 type balanceResponse struct {
-	Status []Balance `json:"balance"`
+	Status []Balance `json:"status"`
 }
 
 func (c Client) Users(t Token) ([]User, error) {
