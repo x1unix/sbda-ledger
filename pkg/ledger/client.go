@@ -71,8 +71,8 @@ func (c Client) do(req *http.Request, out interface{}) error {
 	case http.StatusBadGateway:
 		return errors.New(rsp.Status)
 	default:
-		errRsp := ErrorResponse{Status: rsp.Status}
-		if err := json.Unmarshal(content, &errRsp); err != nil {
+		errRsp := &ErrorResponse{StatusCode: rsp.StatusCode, Status: rsp.Status}
+		if err := json.Unmarshal(content, errRsp); err != nil {
 			errRsp.ErrorData.Message = string(content)
 		}
 

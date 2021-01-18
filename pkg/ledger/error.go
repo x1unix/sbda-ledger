@@ -6,8 +6,9 @@ import (
 )
 
 type ErrorResponse struct {
-	Status    string `json:"-"`
-	ErrorData struct {
+	StatusCode int    `json:"-"`
+	Status     string `json:"-"`
+	ErrorData  struct {
 		Message string          `json:"message"`
 		Data    json.RawMessage `json:"data"`
 	} `json:"error"`
