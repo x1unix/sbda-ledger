@@ -24,6 +24,7 @@ func main() {
 		return
 	}
 	zap.ReplaceGlobals(logger)
+	// nolint: errcheck
 	defer logger.Sync()
 
 	ctx := app.ApplicationContext()

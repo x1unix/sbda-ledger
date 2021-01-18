@@ -4,6 +4,7 @@ GO ?= go
 all:
 
 include scripts/migrate.mk
+include scripts/golangci.mk
 
 .PHONY: run
 run:

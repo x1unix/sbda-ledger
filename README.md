@@ -12,17 +12,25 @@ API documentation is available as [OpenAPI/Swagger spec](https://editor.swagger.
 * docker-compose
 * **GNU** Make
 * Go 1.12+
-* [golang-migrate](https://github.com/golang-migrate/migrate) (for manual sql migration)
+    * *Optionals*:
+    * [golang-migrate](https://github.com/golang-migrate/migrate) (for manual sql migration)
+    * [golangci-lint](https://golangci-lint.run/) as linter
 
 ## Tests
 
 ### End-to-end
 
 Integration tests (e2e) are described in [e2e](e2e) directory.
+Tests cover all cases, including data structure and routes validation.
 
 * Start environment with `docker-compose start`
 * Start back-end API with `make run`
 * Run tests with `make e2e`
+
+### Unit
+
+I didn't have much time to cover code with unit tests, so most effort was done on integration testing.
+Integration tests cover all cases that could be covered by unit tests, so I don't think that it's critical.
 
 ## Usage
 
@@ -50,6 +58,8 @@ The service can be configured using environment variables, or a [config file](co
 Use `-c` flag to provide path to a config file.
 
 #### Environment variables
+
+See [config.go](internal/config/config.go) for more options.
 
 | Name                 | Type   | Defaults                           | Description                                      |
 |----------------------|--------|------------------------------------|--------------------------------------------------|

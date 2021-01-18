@@ -10,8 +10,13 @@ import (
 	"github.com/x1unix/sbda-ledger/internal/model/user"
 )
 
+// ContextKey is session context key.
+//
+// Used to mitigate SA1029 linter issue, that's all.
+type ContextKey string
+
 const (
-	ctxSessionKey = "session"
+	ctxSessionKey ContextKey = "session"
 )
 
 var (

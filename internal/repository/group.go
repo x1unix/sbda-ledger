@@ -181,6 +181,9 @@ func (r GroupRepository) GetGroupMembers(ctx context.Context, gid user.GroupID) 
 	q, args, err := psql.Select(colID, colName, colEmail).
 		From(tableGroupMembers).InnerJoin(fmt.Sprintf("%s ON %s = %s", tableUsers, colID, colMemberID)).
 		Where(squirrel.Eq{colGroupID: gid}).ToSql()
+	if err != nil {
+		return nil, err
+	}
 
 	var out user.Users
 	err = r.db.SelectContext(ctx, &out, q, args...)
