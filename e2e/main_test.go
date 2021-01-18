@@ -49,7 +49,7 @@ func TestMain(m *testing.M) {
 
 	DB = conns.DB
 	Redis = conns.Redis
-	if err := truncateData(); err != nil {
+	if err := TruncateData(); err != nil {
 		conns.Close()
 		log.Fatal(err)
 	}
@@ -59,7 +59,7 @@ func TestMain(m *testing.M) {
 	os.Exit(exitCode)
 }
 
-func truncateData() error {
+func TruncateData() error {
 	if err := Redis.FlushAll(context.Background()).Err(); err != nil {
 		return fmt.Errorf("E2E - Redis.FlushAll failed: %w", err)
 	}

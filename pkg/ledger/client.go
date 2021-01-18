@@ -99,7 +99,7 @@ func (c Client) get(reqPath string, out interface{}, auth Token) error {
 }
 
 func (c Client) delete(reqPath string, auth Token) error {
-	req, err := c.newRequest(http.MethodGet, reqPath, nil, auth)
+	req, err := c.newRequest(http.MethodDelete, reqPath, nil, auth)
 	if err != nil {
 		return err
 	}

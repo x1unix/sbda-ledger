@@ -3,6 +3,7 @@ package e2e
 import (
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"github.com/x1unix/sbda-ledger/pkg/ledger"
 )
@@ -127,6 +128,66 @@ func TestAuth_Login(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, rsp)
 			require.Equal(t, c.wantUser, rsp.User)
+		})
+	}
+}
+
+func TestAuth_Session(t *testing.T) {
+	sess, err := Client.Register(ledger.RegisterRequest{
+		Email:    "testgetsession@mail.com",
+		Name:     "testgetsession",
+		Password: "123456",
+	})
+	require.NoError(t, err, "failed to create a user for test case")
+
+	cases := map[string]struct {
+		want        ledger.SessionInfo
+		wantErr     string
+		token       ledger.Token
+		onBeforeRun func(t *testing.T, token *ledger.Token)
+	}{
+		"empty token": {
+			wantErr: "401 Unauthorized: authorization required",
+		},
+		"invalid token": {
+			wantErr: "401 Unauthorized: authorization required",
+			token:   ledger.Token(uuid.New().String()),
+		},
+		"valid token": {
+			token: sess.Token,
+			want:  sess.Session,
+		},
+		"expired token": {
+			token:   sess.Token,
+			wantErr: "401 Unauthorized: authorization required",
+			onBeforeRun: func(t *testing.T, token *ledger.Token) {
+				sess, err := Client.Login(ledger.Credentials{
+					Email:    "testgetsession@mail.com",
+					Password: "123456",
+				})
+				require.NoError(t, err, "failed to create a user for test case")
+				*token = sess.Token
+
+				require.NoError(t, Client.Logout(sess.Token), "failed to logout from test account")
+			},
+		},
+	}
+
+	for n, c := range cases {
+		t.Run(n, func(t *testing.T) {
+			token := c.token
+			if c.onBeforeRun != nil {
+				c.onBeforeRun(t, &token)
+			}
+
+			got, err := Client.Session(token)
+			if c.wantErr != "" {
+				shouldContainError(t, err, c.wantErr)
+				return
+			}
+			require.NoError(t, err)
+			require.NotNil(t, got)
+			require.Equal(t, c.want, *got)
 		})
 	}
 }
