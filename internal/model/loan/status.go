@@ -10,5 +10,5 @@ type Balance struct {
 	UserID user.ID `json:"user_id" db:"user_id"`
 
 	// Balance is summary of loans given to specific user and debts of that user.
-	Balance Amount `json:"balance" db:"amount"`
+	Balance Amount `json:"balance" db:"balance"`
 }

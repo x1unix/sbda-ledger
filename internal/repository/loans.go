@@ -40,7 +40,7 @@ func (r LoansRepository) AddLoans(ctx context.Context, records []loan.Loan) erro
 // GetUserBalance implements service.LoansStorage
 func (r LoansRepository) GetUserBalance(ctx context.Context, uid user.ID) ([]loan.Balance, error) {
 	var out []loan.Balance
-	const query = "SELECT user_id, SUM(amount) FROM (" +
+	const query = "SELECT user_id, SUM(amount) as balance FROM (" +
 		"SELECT debtor_id AS user_id, amount FROM loans WHERE lender_id = $1" +
 		" UNION ALL " +
 		"SELECT lender_id AS user_id, amount * -1 FROM loans WHERE debtor_id = $1" +
