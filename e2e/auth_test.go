@@ -7,7 +7,7 @@ import (
 	"github.com/x1unix/sbda-ledger/pkg/ledger"
 )
 
-func TestUser_Register(t *testing.T) {
+func TestAuth_Register(t *testing.T) {
 	cases := []struct {
 		label   string
 		req     ledger.RegisterRequest
@@ -74,6 +74,59 @@ func TestUser_Register(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, sess.User.Name, c.req.Name)
 			require.Equal(t, sess.User.Email, c.req.Email)
+		})
+	}
+}
+
+func TestAuth_Login(t *testing.T) {
+	sess, err := Client.Register(ledger.RegisterRequest{
+		Email:    "testauthlogin@mail.com",
+		Name:     "testauthlogin",
+		Password: "123456",
+	})
+	require.NoError(t, err, "failed to create a user for test case")
+
+	cases := map[string]struct {
+		wantErr  string
+		creds    ledger.Credentials
+		wantUser ledger.User
+	}{
+		"empty request": {
+			wantErr: "400 Bad Request: invalid request payload",
+		},
+		"empty email": {
+			creds:   ledger.Credentials{Password: "12345"},
+			wantErr: "400 Bad Request: invalid request payload",
+		},
+		"empty password": {
+			creds:   ledger.Credentials{Email: "testauthlogin@mail.com"},
+			wantErr: "400 Bad Request: invalid request payload",
+		},
+		"invalid username": {
+			creds:   ledger.Credentials{Email: "badusername@mail.com", Password: "123456"},
+			wantErr: "400 Bad Request: invalid username or password",
+		},
+		"invalid password": {
+			creds:   ledger.Credentials{Email: "testauthlogin@mail.com", Password: "badpassword"},
+			wantErr: "400 Bad Request: invalid username or password",
+		},
+		"valid login": {
+			creds:    ledger.Credentials{Email: "testauthlogin@mail.com", Password: "123456"},
+			wantUser: sess.User,
+		},
+	}
+
+	for n, c := range cases {
+		t.Run(n, func(t *testing.T) {
+			rsp, err := Client.Login(c.creds)
+			if c.wantErr != "" {
+				shouldContainError(t, err, c.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, rsp)
+			require.Equal(t, c.wantUser, rsp.User)
 		})
 	}
 }
