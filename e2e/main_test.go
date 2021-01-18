@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -38,6 +39,7 @@ func TestMain(m *testing.M) {
 		log.Fatalf("Failed to ping test Ledger API: %s. Run 'make run' to start test API", err)
 	}
 
+	cfg.DB.SkipMigration = true
 	conns, err := app.InstantiateConnectors(context.Background(), cfg)
 	if err != nil {
 		log.Fatalf("Failed to get test DB connectors: %s. Run 'docker-compose start' to start DB and Redis", err)
@@ -45,7 +47,32 @@ func TestMain(m *testing.M) {
 
 	DB = conns.DB
 	Redis = conns.Redis
+	if err := truncateData(); err != nil {
+		conns.Close()
+		log.Fatal(err)
+	}
+
 	exitCode := m.Run()
 	conns.Close()
 	os.Exit(exitCode)
+}
+
+func truncateData() error {
+	if err := Redis.FlushAll(context.Background()).Err(); err != nil {
+		return fmt.Errorf("E2E - Redis.FlushAll failed: %w", err)
+	}
+
+	queries := []string{
+		"TRUNCATE TABLE loans",
+		"TRUNCATE TABLE group_membership",
+		"TRUNCATE TABLE groups",
+		"TRUNCATE TABLE users",
+	}
+
+	for _, q := range queries {
+		if _, err := DB.Exec(q); err != nil {
+			return fmt.Errorf("E2E - %q failed: %w", q, err)
+		}
+	}
+	return nil
 }
