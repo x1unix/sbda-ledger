@@ -442,6 +442,23 @@ paths:
           description: "Not authorised"
           schema:
             $ref: "#/definitions/ErrorResponse"
+  /ping:
+    get:
+      tags: [ "maintenance" ]
+      summary: "Ping service"
+      description: "Check if ledger service is alive"
+      operationId: "ping"
+      produces:
+        - "application/json"
+      responses:
+        "200":
+          description: "Successful response"
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "pong"
 
 
 securityDefinitions:

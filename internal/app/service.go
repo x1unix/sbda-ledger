@@ -36,6 +36,11 @@ func NewService(baseCtx context.Context, logger *zap.Logger, conn *Connectors, c
 	hWrapper := web.NewWrapper(logger.Named("http"))
 	requireAuth := hWrapper.MiddlewareFunc(middleware.NewAuthMiddleware(authSvc))
 
+	// General
+	srv.Router.Methods(http.MethodGet).
+		Path("/ping").
+		HandlerFunc(hWrapper.WrapResourceHandler(handler.Ping))
+
 	// Auth
 	authHandler := handler.NewAuthHandler(userSvc, authSvc)
 	srv.Router.Methods(http.MethodPost).
