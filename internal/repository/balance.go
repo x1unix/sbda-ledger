@@ -48,7 +48,7 @@ func (r BalanceRepository) GetBalance(ctx context.Context, uid user.ID) ([]loan.
 		balance, err := allResultToBalance(items)
 		if err != nil {
 			// User cache is corrupted and should be truncated.
-			// Clean cache clearly and ask service to repopulate it.
+			// Clean cache and ask service to repopulate it.
 			r.mustClearBalance(ctx, uid)
 			return nil, service.ErrNoBalance
 		}
