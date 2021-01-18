@@ -14,6 +14,14 @@ API documentation is available as [OpenAPI/Swagger spec](https://editor.swagger.
 * Go 1.12+
 * [golang-migrate](https://github.com/golang-migrate/migrate) (for manual sql migration)
 
+## Tests
+
+### End-to-end
+
+Integration tests (e2e) are described in [e2e](e2e) directory.
+
+Use `make e2e` to run them.
+
 ## Usage
 
 ### Development
