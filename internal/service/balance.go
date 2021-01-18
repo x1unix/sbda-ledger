@@ -69,6 +69,8 @@ func (svc LoanService) GetUserBalance(ctx context.Context, uid user.ID) ([]loan.
 	balance, err := svc.cache.GetBalance(ctx, uid)
 	if err == nil {
 		// Return denormalized value if present
+		svc.log.Debug("serving balance data from cache", zap.Any("uid", uid),
+			zap.Any("balance", balance))
 		return balance, nil
 	}
 
