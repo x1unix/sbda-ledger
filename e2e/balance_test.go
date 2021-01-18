@@ -18,6 +18,8 @@ func TestBalance(t *testing.T) {
 	alice := mustCreateUser(t, "alice", "alice@mail.com")
 	bob := mustCreateUser(t, "bob", "bob@mail.com")
 	charlie := mustCreateUser(t, "charlie", "charlie@mail.com")
+	t.Logf("Created users:\nAlice: %s\nBob: %s\nCharlie: %s",
+		alice.User.ID, bob.User.ID, charlie.User.ID)
 
 	gFriends, err := Client.CreateGroup("friend", alice.Token)
 	require.NoError(t, err, "failed to create Friends group")
