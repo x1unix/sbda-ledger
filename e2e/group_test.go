@@ -469,11 +469,3 @@ func TestGroup_Delete(t *testing.T) {
 		})
 	}
 }
-
-//func TestGroup(t *testing.T) {
-//	groupOwner := mustCreateUser(t, "testgroupowner", "testgroup0@mail.com")
-//	orphanUser := mustCreateUser(t, "testgrouporphan", "testgrouporphan@mail.com")
-//	testGroupMember1 := mustCreateUser(t, "testgroupmem1", "testgroup1@mail.com")
-//	testGroupMember2 := mustCreateUser(t, "testgroupmem2", "testgroup1@mail.com")
-//
-//}
