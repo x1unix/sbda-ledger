@@ -431,7 +431,7 @@ paths:
       - auth_token: [ ]
       responses:
         "200":
-          description: "Balance status"
+          description: "Balance (saldo) for each related user which actor loaned money or have a dept."
           schema:
             $ref: "#/definitions/BalanceStatus"
         "403":
@@ -453,13 +453,20 @@ securityDefinitions:
 
 definitions:
   BalanceStatus:
-    description: "Balance status"
-    type: "object"
+    description: "Balance (saldo) for each related user which actor loaned money or have a dept."
+    type: "array"
     readOnly: true
-    properties:
-      balance:
-        type: integer
-        description: "Balance in cents"
+    items:
+      type: "object"
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: "User ID"
+        balance:
+          type: integer
+          example: 3600
+          description: "Balance in cents"
   GroupInfo:
     description: "Group full information"
     type: "object"
