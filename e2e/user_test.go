@@ -8,14 +8,17 @@ import (
 )
 
 func TestUser_Register(t *testing.T) {
-	cases := map[string]struct {
+	cases := []struct {
+		label   string
 		req     ledger.RegisterRequest
 		wantErr string
 	}{
-		"empty payload": {
+		{
+			label:   "empty payload",
 			wantErr: "400 Bad Request: invalid request payload",
 		},
-		"invalid email": {
+		{
+			label:   "invalid email",
 			wantErr: "400 Bad Request: invalid request payload",
 			req: ledger.RegisterRequest{
 				Email:    "--",
@@ -23,7 +26,8 @@ func TestUser_Register(t *testing.T) {
 				Password: "123456",
 			},
 		},
-		"invalid name": {
+		{
+			label:   "invalid name",
 			wantErr: "400 Bad Request: invalid request payload",
 			req: ledger.RegisterRequest{
 				Email:    "u111@example.com",
@@ -31,7 +35,8 @@ func TestUser_Register(t *testing.T) {
 				Password: "123456",
 			},
 		},
-		"invalid password": {
+		{
+			label:   "invalid password",
 			wantErr: "400 Bad Request: invalid request payload",
 			req: ledger.RegisterRequest{
 				Email:    "u111@example.com",
@@ -39,17 +44,27 @@ func TestUser_Register(t *testing.T) {
 				Password: "",
 			},
 		},
-		"valid creds": {
+		{
+			label: "valid creds",
 			req: ledger.RegisterRequest{
 				Email:    "u111@example.com",
 				Name:     "joey",
 				Password: "123456",
 			},
 		},
+		{
+			label:   "duplicate registration",
+			wantErr: "400 Bad Request: record already exists",
+			req: ledger.RegisterRequest{
+				Email:    "u111@example.com",
+				Name:     "marko",
+				Password: "123456",
+			},
+		},
 	}
 
-	for n, c := range cases {
-		t.Run(n, func(t *testing.T) {
+	for _, c := range cases {
+		t.Run(c.label, func(t *testing.T) {
 			sess, err := Client.Register(c.req)
 			if c.wantErr != "" {
 				shouldContainError(t, err, c.wantErr)
