@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/jmoiron/sqlx"
+	"github.com/stretchr/testify/require"
 	"github.com/x1unix/sbda-ledger/internal/app"
 	"github.com/x1unix/sbda-ledger/pkg/ledger"
 )
@@ -75,4 +76,8 @@ func truncateData() error {
 		}
 	}
 	return nil
+}
+
+func TestPing(t *testing.T) {
+	require.NoError(t, Client.Ping())
 }

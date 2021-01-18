@@ -50,7 +50,7 @@ func (c Client) newRequest(method, reqPath string, data interface{}, auth Token)
 func (c Client) do(req *http.Request, out interface{}) error {
 	rsp, err := c.http.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed to send request: %")
+		return fmt.Errorf("failed to send request: %w", err)
 	}
 
 	defer rsp.Body.Close()
