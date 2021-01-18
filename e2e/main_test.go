@@ -66,8 +66,8 @@ func truncateData() error {
 	queries := []string{
 		"TRUNCATE TABLE loans",
 		"TRUNCATE TABLE group_membership",
-		"TRUNCATE TABLE groups",
-		"TRUNCATE TABLE users",
+		"TRUNCATE TABLE groups CASCADE",
+		"TRUNCATE TABLE users CASCADE",
 	}
 
 	for _, q := range queries {
