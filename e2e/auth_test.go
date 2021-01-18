@@ -191,3 +191,39 @@ func TestAuth_Session(t *testing.T) {
 		})
 	}
 }
+
+func TestAuth_Logout(t *testing.T) {
+	sess, err := Client.Register(ledger.RegisterRequest{
+		Email:    "testlogout@mail.com",
+		Name:     "testlogout",
+		Password: "123456",
+	})
+	require.NoError(t, err, "failed to create a user for test case")
+
+	cases := map[string]struct {
+		wantErr string
+		token   ledger.Token
+	}{
+		"empty token": {
+			wantErr: "401 Unauthorized: authorization required",
+		},
+		"invalid token": {
+			wantErr: "401 Unauthorized: authorization required",
+			token:   ledger.Token(uuid.New().String()),
+		},
+		"valid token": {
+			token: sess.Token,
+		},
+	}
+
+	for n, c := range cases {
+		t.Run(n, func(t *testing.T) {
+			err := Client.Logout(c.token)
+			if c.wantErr != "" {
+				shouldContainError(t, err, c.wantErr)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
