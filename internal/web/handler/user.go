@@ -56,5 +56,10 @@ func (h UserHandler) GetBalance(r *http.Request) (interface{}, error) {
 		return nil, service.ErrAuthRequired
 	}
 
-	return h.loanSvc.GetUserBalance(r.Context(), sess.UserID)
+	val, err := h.loanSvc.GetUserBalance(r.Context(), sess.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return request.BalanceStatus{Status: val}, nil
 }

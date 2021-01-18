@@ -471,19 +471,22 @@ securityDefinitions:
 definitions:
   BalanceStatus:
     description: "Balance (saldo) for each related user which actor loaned money or have a dept."
-    type: "array"
+    type: object
     readOnly: true
-    items:
-      type: "object"
-      properties:
-        user_id:
-          type: string
-          format: uuid
-          description: "User ID"
-        balance:
-          type: integer
-          example: 3600
-          description: "Balance in cents"
+    properties:
+      status:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            user_id:
+              type: string
+              format: uuid
+              description: "User ID"
+            balance:
+              type: integer
+              example: 3600
+              description: "Balance in cents"
   GroupInfo:
     description: "Group full information"
     type: "object"
