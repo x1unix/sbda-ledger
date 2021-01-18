@@ -117,8 +117,8 @@ func (svc LoanService) AddLoan(ctx context.Context, lender user.ID, amount loan.
 		return fmt.Errorf("failed to save loan transactions: %w", err)
 	}
 
-	// update balance cache for affected users in background
-	go svc.commitBalanceChanges(amount, lender, debtors)
+	// update balance cache for affected users
+	svc.commitBalanceChanges(amount, lender, debtors)
 	return nil
 }
 
