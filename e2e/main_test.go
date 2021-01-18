@@ -46,8 +46,9 @@ func TestMain(m *testing.M) {
 
 	DB = conns.DB
 	Redis = conns.Redis
-	defer conns.Close()
-	os.Exit(m.Run())
+	exitCode := m.Run()
+	conns.Close()
+	os.Exit(exitCode)
 }
 
 func provideTestDeps() (*config.Config, *app.Connectors, error) {
