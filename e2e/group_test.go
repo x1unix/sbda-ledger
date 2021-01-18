@@ -76,13 +76,15 @@ func TestGroup_Create(t *testing.T) {
 
 func TestGroup_Delete(t *testing.T) {
 	groupOwner := mustCreateUser(t, "testgroupdelete", "testgroupdelete@mail.com")
+	groupMember := mustCreateUser(t, "testgroupdeletemem", "testgroupdeletemem@mail.com")
 	grp, err := Client.CreateGroup("testgroupdelete", groupOwner.Token)
 	require.NoError(t, err, "failed to create a test group")
 	cases := []struct {
-		label   string
-		wantErr string
-		groupID string
-		token   ledger.Token
+		label     string
+		wantErr   string
+		groupID   string
+		token     ledger.Token
+		beforeRun func(t *testing.T)
 	}{
 		{
 			label:   "require auth",
@@ -108,6 +110,23 @@ func TestGroup_Delete(t *testing.T) {
 			wantErr: "404 Not Found: group not found",
 		},
 		{
+			label:   "other guests can't delete group",
+			groupID: grp.ID,
+			token:   groupMember.Token,
+			wantErr: "403 Forbidden: you have no right to control this group",
+		},
+		{
+			label:   "guests can't delete group",
+			groupID: grp.ID,
+			token:   groupMember.Token,
+			wantErr: "403 Forbidden: you have no right to control this group",
+			beforeRun: func(t *testing.T) {
+				require.NoError(t, Client.AddGroupMembers(grp.ID, groupOwner.Token, groupMember.User.ID),
+					"can't add test member to a test group")
+
+			},
+		},
+		{
 			label:   "valid group",
 			groupID: grp.ID,
 			token:   groupOwner.Token,
@@ -116,6 +135,9 @@ func TestGroup_Delete(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.label, func(t *testing.T) {
+			if c.beforeRun != nil {
+				c.beforeRun(t)
+			}
 			err := Client.DeleteGroup(c.groupID, c.token)
 			if c.wantErr != "" {
 				require.Error(t, err)
