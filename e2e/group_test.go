@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -8,6 +9,67 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/x1unix/sbda-ledger/pkg/ledger"
 )
+
+func TestGroup_Members(t *testing.T) {
+	const membersCount = 3
+	owner := mustCreateUser(t, "testgroupfulladm", "testgroupfulladm@mail.com")
+	group, err := Client.CreateGroup("testgroupfull", owner.Token)
+	require.NoError(t, err, "failed to create test group")
+	tokens := make(map[string]ledger.Token, membersCount)
+	members := make([]ledger.User, membersCount)
+
+	memberIds := make([]string, membersCount)
+	for i := 0; i < membersCount; i++ {
+		resp := mustCreateUser(t, fmt.Sprintf("testgroupfull%d", i),
+			fmt.Sprintf("testgroupfull%d@mail.com", i))
+		tokens[resp.User.ID] = resp.Token
+		members[i] = resp.User
+		memberIds[i] = resp.User.ID
+	}
+
+	require.NoError(t, Client.AddGroupMembers(group.ID, owner.Token, memberIds...),
+		"failed to add test users to a test group")
+
+	// member list doesn't include group owner
+	info, err := Client.GroupByID(group.ID, owner.Token)
+	require.NoError(t, err)
+	require.Equal(t, *group, info.Group)
+	compareMembers(t, members, info.Members)
+
+	memberList, err := Client.GroupMembers(group.ID, owner.Token)
+	require.NoError(t, err)
+	compareMembers(t, members, memberList)
+
+	// drop everyone and ensure that changes were applied
+	for _, u := range members {
+		require.NoErrorf(t, Client.DeleteGroupMember(group.ID, u.ID, owner.Token),
+			"failed to delete %q from group", u.ID)
+	}
+
+	memberList, err = Client.GroupMembers(group.ID, owner.Token)
+	require.NoError(t, err)
+	require.Empty(t, memberList)
+}
+
+func compareMembers(t *testing.T, want []ledger.User, got []ledger.User) {
+	if len(want) != len(got) {
+		t.Fatal("member mismatch")
+	}
+
+	origin := make(map[string]ledger.User, len(want))
+	for _, u := range want {
+		origin[u.ID] = u
+	}
+
+	for _, u := range got {
+		expect, ok := origin[u.ID]
+		if !ok {
+			t.Fatalf("unexpected user in member list: %q (%s)", u.ID, u.Name)
+		}
+
+		require.Equal(t, expect, u)
+	}
+}
 
 func TestGroup_Create(t *testing.T) {
 	groupOwner := mustCreateUser(t, "testgroupcreate", "testgroupcreate@mail.com")
