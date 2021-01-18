@@ -55,6 +55,9 @@ func TestMain(m *testing.M) {
 	}
 
 	exitCode := m.Run()
+	if err := TruncateData(); err != nil {
+		log.Println("TruncateData returned an error:", err)
+	}
 	conns.Close()
 	os.Exit(exitCode)
 }
