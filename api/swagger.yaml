@@ -137,7 +137,10 @@ paths:
         "200":
           description: "List of user groups"
           schema:
-            $ref: "#/definitions/Groups"
+            type: object
+            properties:
+              groups:
+                $ref: "#/definitions/Groups"
         "401":
           description: "Not authorised"
           schema:
