@@ -78,6 +78,7 @@ func (svc LoanService) GetUserBalance(ctx context.Context, uid user.ID) ([]loan.
 		svc.log.Warn("failed to read cache, repopulating balance", zap.Error(err), zap.Any("uid", uid))
 	}
 
+	// User balance is populated to a cache only after first balance was queried.
 	balance, err = svc.loans.GetUserBalance(ctx, uid)
 	if err != nil {
 		svc.log.Error("failed to calculate user balance", zap.Error(err), zap.Any("uid", uid))
