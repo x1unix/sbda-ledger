@@ -16,6 +16,10 @@ import (
 	"github.com/x1unix/sbda-ledger/pkg/ledger"
 )
 
+//
+// Main test helpers. For balance test, see balance_test.go
+//
+
 var (
 	Client *ledger.Client
 	DB     *sqlx.DB
