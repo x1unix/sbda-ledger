@@ -8,16 +8,16 @@ import (
 	"github.com/x1unix/sbda-ledger/internal/model/auth"
 	"github.com/x1unix/sbda-ledger/internal/model/request"
 	"github.com/x1unix/sbda-ledger/internal/service"
-	"github.com/x1unix/sbda-ledger/internal/web"
 )
 
 type UserHandler struct {
 	usersSvc *service.UsersService
+	loanSvc  *service.LoanService
 }
 
 // NewUserHandler is UserHandler constructor
-func NewUserHandler(usersSvc *service.UsersService) *UserHandler {
-	return &UserHandler{usersSvc: usersSvc}
+func NewUserHandler(usersSvc *service.UsersService, loanSvc *service.LoanService) *UserHandler {
+	return &UserHandler{usersSvc: usersSvc, loanSvc: loanSvc}
 }
 
 func (h UserHandler) GetUsersList(r *http.Request) (interface{}, error) {
@@ -50,5 +50,11 @@ func (h UserHandler) GetCurrentUser(r *http.Request) (interface{}, error) {
 }
 
 func (h UserHandler) GetBalance(r *http.Request) (interface{}, error) {
-	return nil, web.ErrNotImplemented
+	ctx := r.Context()
+	sess := auth.SessionFromContext(ctx)
+	if sess == nil {
+		return nil, service.ErrAuthRequired
+	}
+
+	return h.loanSvc.GetUserBalance(r.Context(), sess.UserID)
 }

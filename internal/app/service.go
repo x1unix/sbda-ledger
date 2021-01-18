@@ -22,7 +22,7 @@ type Service struct {
 func NewService(baseCtx context.Context, logger *zap.Logger, conn *Connectors, cfg *config.Config) *Service {
 	srv := web.NewServer(cfg.Server.ListenParams())
 
-	balanceStore := repository.NewBalanceRepository(conn.Redis)
+	balanceStore := repository.NewBalanceRepository(logger, conn.Redis)
 	loansStore := repository.NewLoansRepository(conn.DB)
 	groupStore := repository.NewGroupRepository(conn.DB)
 	userStore := repository.NewUserRepository(conn.DB)
@@ -78,7 +78,7 @@ func NewService(baseCtx context.Context, logger *zap.Logger, conn *Connectors, c
 		HandlerFunc(hWrapper.WrapHandler(groupHandler.RemoveMember))
 
 	// Users
-	usrHandler := handler.NewUserHandler(userSvc)
+	usrHandler := handler.NewUserHandler(userSvc, loanSvc)
 	usrRouter := srv.Router.NewRoute().Subrouter()
 	usrRouter.Use(requireAuth)
 	usrRouter.Path("/users").Methods(http.MethodGet).
